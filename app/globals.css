@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FAF7F2;         /* Parchment / Raw Ivory */
+  --card: #F4EFE6;               /* Bleached Sandstone */
+  --primary-accent: #1A4268;     /* Multani Cobalt / Lapis Glaze */
+  --secondary-accent: #8F3B1B;   /* Fired Terracotta */
+  --highlight: #C5A059;          /* Antiqued Brass / Chiseled Gold */
+  --foreground: #1F1D1A;         /* Charcoal Umber */
+  --muted: #6E675F;              /* Aged Stone */
+  --border: #E6DFD5;             /* Raw Chiseled Edge */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-jakarta), sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-cormorant), Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Custom Artisan Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C5A059;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1A4268;
+}
+
+/* Subtle Chiseled Edge Effect */
+.chiseled-border {
+  border: 1px solid #E6DFD5;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Subtle Parchment Texture Accent */
+.bg-parchment-pattern {
+  background-color: #FAF7F2;
+  background-image: radial-gradient(#1A4268 0.4px, transparent 0.4px), radial-gradient(#8F3B1B 0.4px, #FAF7F2 0.4px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  background-opacity: 0.03;
+}
+
+/* Badge styling */
+.badge-gold {
+  background-color: rgba(197, 160, 89, 0.12);
+  color: #8F3B1B;
+  border: 1px solid rgba(197, 160, 89, 0.35);
+}
+
+.badge-lapis {
+  background-color: rgba(26, 66, 104, 0.08);
+  color: #1A4268;
+  border: 1px solid rgba(26, 66, 104, 0.25);
+}
+
+/* Image zoom transition */
+.image-zoom-container {
+  overflow: hidden;
+}
+
+.image-zoom-container img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.image-zoom-container:hover img {
+  transform: scale(1.05);
+}
