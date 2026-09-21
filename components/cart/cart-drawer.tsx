@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { X, Plus, Minus, Trash2, ShoppingBag, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
 import { useCartStore } from '@/store/cart-store';
 
+
 export function CartDrawer() {
   const [mounted, setMounted] = useState(false);
   const {
