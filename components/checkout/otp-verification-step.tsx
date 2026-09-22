@@ -17,6 +17,12 @@ export function OtpVerificationStep({
   isVerified,
   onVerifiedChange,
 }: OtpVerificationStepProps) {
+  // Extract local 10 digits if a full +92 number is passed initially
+  const initialLocalNumber = phone
+    ? phone.replace(/^\+92/, '').replace(/^0/, '').slice(0, 10)
+    : '';
+
+  const [rawDigits, setRawDigits] = useState(initialLocalNumber);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -33,16 +39,45 @@ export function OtpVerificationStep({
     return () => clearInterval(timer);
   }, [countdown]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let input = e.target.value.replace(/\D/g, ''); // Digits only
+
+    // If user mistakenly types a leading 0 (e.g. 0300...), strip it off
+    if (input.startsWith('0')) {
+      input = input.slice(1);
+    }
+
+    // Limit to exactly 10 digits
+    const formattedDigits = input.slice(0, 10);
+    setRawDigits(formattedDigits);
+
+    // Propagate standard E.164 formatted number (+923XXXXXXXXX)
+    if (formattedDigits.length > 0) {
+      onPhoneChange(`+92${formattedDigits}`);
+    } else {
+      onPhoneChange('');
+    }
+
+    if (otpSent) setOtpSent(false);
+    if (message) setMessage(null);
+  };
+
   const handleSendOtp = async () => {
-    if (!phone || phone.trim().length < 10) {
-      setMessage({ type: 'error', text: 'Please enter a valid Pakistan mobile number (e.g. 03001234567)' });
+    // Pakistan numbers must be 10 digits after +92 and begin with '3'
+    if (rawDigits.length !== 10 || !rawDigits.startsWith('3')) {
+      setMessage({
+        type: 'error',
+        text: 'Please enter a valid 10-digit mobile number starting with 3 (e.g. 300 1234567)',
+      });
       return;
     }
+
+    const fullPhoneNumber = `+92${rawDigits}`;
 
     setLoading(true);
     setMessage(null);
 
-    const res = await sendOrderOtp(phone);
+    const res = await sendOrderOtp(fullPhoneNumber);
     setLoading(false);
 
     if (res.success) {
@@ -54,7 +89,6 @@ export function OtpVerificationStep({
       });
 
       if (res.mockCode) {
-        // Auto-fill mock code in local development for smooth testing experience
         setCode(res.mockCode);
       }
     } else {
@@ -68,10 +102,12 @@ export function OtpVerificationStep({
       return;
     }
 
+    const fullPhoneNumber = `+92${rawDigits}`;
+
     setLoading(true);
     setMessage(null);
 
-    const res = await verifyOrderOtp(phone, code);
+    const res = await verifyOrderOtp(fullPhoneNumber, code);
     setLoading(false);
 
     if (res.success) {
@@ -111,25 +147,30 @@ export function OtpVerificationStep({
               Mobile Phone Number (Pakistan) <span className="text-terracotta">*</span>
             </label>
             <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Smartphone className="w-4 h-4 absolute left-3 top-3 text-muted" />
+              <div className="relative flex-1 flex items-center">
+                {/* Fixed country code badge */}
+                <div className="absolute left-0 top-0 bottom-0 pl-3 pr-2.5 flex items-center gap-1.5 bg-[#EFE9DF] border-r border-border rounded-l-md pointer-events-none select-none">
+                  <Smartphone className="w-4 h-4 text-muted" />
+                  <span className="text-xs font-mono font-bold text-charcoal">+92</span>
+                </div>
+
+                {/* 10-digit input */}
                 <input
                   type="tel"
-                  placeholder="03001234567 or +923001234567"
-                  value={phone}
-                  onChange={(e) => {
-                    onPhoneChange(e.target.value);
-                    if (otpSent) setOtpSent(false);
-                  }}
+                  inputMode="numeric"
+                  placeholder="300 1234567"
+                  value={rawDigits}
+                  onChange={handleInputChange}
                   disabled={loading || isVerified}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-parchment border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-brass text-charcoal font-mono"
+                  maxLength={10}
+                  className="w-full pl-[74px] pr-3 py-2 text-xs bg-parchment border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-brass text-charcoal font-mono tracking-wider"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={loading || countdown > 0}
+                disabled={loading || countdown > 0 || rawDigits.length !== 10}
                 className="px-4 py-2 bg-lapis hover:bg-lapis/90 text-parchment text-xs font-medium rounded-md transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5"
               >
                 {loading ? (
@@ -143,6 +184,7 @@ export function OtpVerificationStep({
                 )}
               </button>
             </div>
+            <p className="text-[10px] text-muted mt-1">Enter your 10-digit mobile number starting with 3</p>
           </div>
 
           {/* OTP Input Form when OTP is sent */}
@@ -196,7 +238,7 @@ export function OtpVerificationStep({
         </div>
       ) : (
         <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs text-emerald-900">
-          <span>Verified Pakistan Mobile: <strong>{phone}</strong></span>
+          <span>Verified Pakistan Mobile: <strong>+92 {rawDigits}</strong></span>
           <button
             type="button"
             onClick={() => {
