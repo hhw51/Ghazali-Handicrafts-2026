@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { sendOrderOtp, verifyOrderOtp } from '@/actions/otp';
-import { Smartphone, CheckCircle2, ShieldCheck, RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
+import { Smartphone, CheckCircle2, ShieldCheck, RefreshCw, Sparkles, AlertCircle, MessageSquare } from 'lucide-react';
 
 interface OtpVerificationStepProps {
   phone: string;
@@ -23,6 +23,7 @@ export function OtpVerificationStep({
     : '';
 
   const [rawDigits, setRawDigits] = useState(initialLocalNumber);
+  const [channel, setChannel] = useState<'whatsapp' | 'sms'>('whatsapp');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -77,7 +78,7 @@ export function OtpVerificationStep({
     setLoading(true);
     setMessage(null);
 
-    const res = await sendOrderOtp(fullPhoneNumber);
+    const res = await sendOrderOtp(fullPhoneNumber, channel);
     setLoading(false);
 
     if (res.success) {
@@ -98,7 +99,7 @@ export function OtpVerificationStep({
 
   const handleVerifyOtp = async () => {
     if (!code || code.length !== 4) {
-      setMessage({ type: 'error', text: 'Please enter the complete 4-digit code sent via SMS.' });
+      setMessage({ type: 'error', text: 'Please enter the complete 4-digit code.' });
       return;
     }
 
@@ -142,6 +143,48 @@ export function OtpVerificationStep({
 
       {!isVerified ? (
         <div className="space-y-4">
+          {/* Dual Channel Selector */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-charcoal">
+              Verification Channel <span className="text-terracotta">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-parchment rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setChannel('whatsapp');
+                  if (message) setMessage(null);
+                }}
+                className={`py-2 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  channel === 'whatsapp'
+                    ? 'bg-emerald-800 text-parchment shadow-craft-xs border border-emerald-700'
+                    : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-transparent'
+                }`}
+              >
+                <svg className="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.461c-1.926 0-3.725-.515-5.279-1.413l-.378-.222-3.923 1.028 1.047-3.824-.247-.393c-.987-1.572-1.509-3.393-1.509-5.263 0-5.32 4.329-9.65 9.65-9.65 2.578 0 5.001 1.004 6.822 2.827s2.825 4.246 2.824 6.824c-.002 5.322-4.331 9.652-9.651 9.652m0-21.343c-6.443 0-11.687 5.244-11.687 11.687 0 2.062.538 4.07 1.56 5.836l-1.656 6.049 6.189-1.623c1.706.93 3.639 1.423 5.594 1.424h.005c6.442 0 11.686-5.245 11.688-11.688 0-3.122-1.216-6.058-3.427-8.27-2.211-2.212-5.147-3.427-8.266-3.427" />
+                </svg>
+                <span>WhatsApp (Instant)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setChannel('sms');
+                  if (message) setMessage(null);
+                }}
+                className={`py-2 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  channel === 'sms'
+                    ? 'bg-lapis text-parchment shadow-craft-xs border border-lapis'
+                    : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-transparent'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4 text-brass shrink-0" />
+                <span>SMS</span>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-charcoal mb-1.5">
               Mobile Phone Number (Pakistan) <span className="text-terracotta">*</span>
@@ -191,7 +234,7 @@ export function OtpVerificationStep({
           {otpSent && (
             <div className="p-4 bg-parchment rounded-lg border border-border space-y-3 animate-in fade-in duration-200">
               <label className="block text-xs font-semibold text-charcoal">
-                Enter 4-Digit SMS Verification Code <span className="text-terracotta">*</span>
+                Enter 4-Digit Verification Code <span className="text-terracotta">*</span>
               </label>
 
               <div className="flex gap-3 items-center">
@@ -211,6 +254,26 @@ export function OtpVerificationStep({
                   className="px-5 py-2.5 bg-terracotta hover:bg-terracotta/90 text-parchment text-xs font-medium rounded-md transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Verify Code'}
+                </button>
+              </div>
+
+              {/* Inline Channel Fallback Recommendation */}
+              <div className="pt-2 border-t border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px]">
+                <span className="text-muted">Didn't receive the code via {channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newChannel = channel === 'whatsapp' ? 'sms' : 'whatsapp';
+                    setChannel(newChannel);
+                    setOtpSent(false);
+                    setMessage({
+                      type: 'info',
+                      text: `Switched channel to ${newChannel === 'whatsapp' ? 'WhatsApp' : 'Regular SMS'}. Tap "Send OTP" to resend code.`,
+                    });
+                  }}
+                  className="font-bold text-terracotta hover:underline shrink-0"
+                >
+                  Try sending via {channel === 'whatsapp' ? 'Regular SMS' : 'WhatsApp'} →
                 </button>
               </div>
             </div>
