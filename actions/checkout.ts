@@ -144,16 +144,26 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
 
     const orderNumber = newOrder.id.slice(0, 8).toUpperCase();
 
-    sendOrderNotifications({
-      orderNumber,
-      customerName: customer.customer_name,
-      phone: customer.customer_phone.replace(/\s+/g, ''),
-      email: customer.customer_email || undefined,
-      items: notificationItems,
-      totalAmount,
-      shippingAddress: customer.address,
-      city: customer.city,
-    }).catch((notifErr) => console.error('Asynchronous order notification error:', notifErr));
+    try {
+      console.log('[Order Notification] Triggering dispatch for:', {
+        orderNumber,
+        phone: customer.customer_phone.replace(/\s+/g, ''),
+        channel: 'whatsapp',
+      });
+
+      await sendOrderNotifications({
+        orderNumber,
+        customerName: customer.customer_name,
+        phone: customer.customer_phone.replace(/\s+/g, ''),
+        email: customer.customer_email || undefined,
+        items: notificationItems,
+        totalAmount,
+        shippingAddress: customer.address,
+        city: customer.city,
+      });
+    } catch (notifErr) {
+      console.error('[Order Notification] Dispatch error:', notifErr);
+    }
 
     return {
       success: true,

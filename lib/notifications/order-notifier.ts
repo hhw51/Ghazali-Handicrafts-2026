@@ -26,10 +26,17 @@ export async function sendOrderNotifications(order: OrderNotificationPayload) {
     `*Items:*\n${itemsSummary}\n\n` +
     `We will prepare and package your parcel with fragile-safe protection. For inquiries, reply directly to this message.`;
 
+  console.log('[Order Notification] Triggering dispatch for:', {
+    orderNumber: order.orderNumber,
+    phone: order.phone,
+    channel: 'whatsapp',
+  });
+
   // 1. Dispatch WhatsApp Confirmation (Local Baileys Worker via Tunnel/Localhost)
   try {
-    if (process.env.WHATSAPP_WORKER_URL) {
-      await fetch(process.env.WHATSAPP_WORKER_URL, {
+    const workerUrl = process.env.WHATSAPP_WORKER_URL;
+    if (workerUrl && workerUrl.trim().length > 0) {
+      const response = await fetch(workerUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -37,7 +44,12 @@ export async function sendOrderNotifications(order: OrderNotificationPayload) {
           message: messageText,
         }),
       });
-      console.log(`[Notification] WhatsApp confirmation dispatched to ${order.phone}`);
+
+      const responseStatus = response.status;
+      const responseData = await response.text();
+      console.log('[Order Notification] Baileys Worker Response:', responseStatus, responseData);
+    } else {
+      console.warn('[Order Notification] WHATSAPP_WORKER_URL is not set.');
     }
   } catch (waErr) {
     console.error('[Notification] WhatsApp dispatch failed:', waErr);
