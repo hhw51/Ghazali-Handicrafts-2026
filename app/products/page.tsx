@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { ProductCard } from '@/components/products/product-card';
 import { ProductSortSelect } from '@/components/products/product-sort-select';
 import { Product, Category } from '@/types/product';
@@ -27,12 +27,12 @@ async function getProductsAndCategories(params: {
   sort?: string;
 }) {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // 1. Fetch categories
     const { data: categories } = await supabase.from('categories').select('*').order('name');
 
-    // 2. Build product query
+    // 2. Build product query (LEFT JOIN on categories)
     let query = supabase.from('products').select('*, category:categories(*)');
 
     if (params.category) {
@@ -78,8 +78,11 @@ async function getProductsAndCategories(params: {
       return { products: [], categories: categories || [] };
     }
 
+    const fetchedProducts = (products as Product[]) || [];
+    console.log('[Storefront Catalog] Loaded products count:', fetchedProducts.length);
+
     return {
-      products: (products as Product[]) || [],
+      products: fetchedProducts,
       categories: (categories as Category[]) || [],
     };
   } catch (err) {

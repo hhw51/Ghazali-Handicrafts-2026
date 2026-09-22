@@ -122,3 +122,21 @@ export async function parseExcelBuffer(
     invalidCount: results.filter((r) => !r.isValid).length,
   };
 }
+
+export function parseGoogleSheetUrl(url: string): { csvExportUrl: string; sheetId: string; gid: string } | null {
+  if (!url || !url.includes('docs.google.com/spreadsheets')) return null;
+
+  const sheetIdMatch = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (!sheetIdMatch || !sheetIdMatch[1]) return null;
+
+  const sheetId = sheetIdMatch[1];
+  const gidMatch = url.match(/gid=([0-9]+)/);
+  const gid = gidMatch ? gidMatch[1] : '0';
+
+  return {
+    sheetId,
+    gid,
+    csvExportUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`,
+  };
+}
+

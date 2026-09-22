@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getSiteSettings } from '@/lib/site-settings';
 import { ProductCard } from '@/components/products/product-card';
 import { Product } from '@/types/product';
 import { ArrowRight, ShieldCheck, PackageCheck, Truck, Sparkles, Award } from 'lucide-react';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('products')
       .select('*, category:categories(*)')
@@ -28,7 +29,10 @@ async function getFeaturedProducts(): Promise<Product[]> {
 }
 
 export default async function HomePage() {
-  const featuredProducts = await getFeaturedProducts();
+  const [featuredProducts, settings] = await Promise.all([
+    getFeaturedProducts(),
+    getSiteSettings(),
+  ]);
 
   const collections = [
     {
@@ -67,39 +71,40 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-16 pb-20">
-      {/* 1. Asymmetric Hero Section */}
+      {/* 1. Dynamic Asymmetric Hero Section */}
       <section className="relative pt-8 pb-16 md:pt-16 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Editorial Copy */}
           <div className="lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brass/15 border border-brass/40 text-terracotta text-xs font-medium">
               <Award className="w-3.5 h-3.5 text-terracotta" />
-              <span>Direct Master Artisan Commissions</span>
+              <span>{settings.hero_badge}</span>
             </div>
 
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-charcoal leading-[1.1]">
-              The Living Cultural <br />
-              <span className="text-lapis italic font-normal">Heritage</span> of Pakistan
+              {settings.hero_title}
             </h1>
 
             <p className="text-sm sm:text-base text-muted max-w-xl leading-relaxed font-sans">
-              Discover authentic heirloom-quality crafts—from Multani cobalt blue pottery and Swati hand-carved walnut chests to translucent onyx chess sets and vibrant truck art. Delivered nationwide with Cash on Delivery and fragile wooden crate guarantee.
+              {settings.hero_subtitle}
             </p>
 
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <Link
-                href="/products"
+                href={settings.hero_primary_cta_link}
                 className="px-6 py-3.5 bg-lapis hover:bg-lapis/90 text-parchment font-medium text-sm rounded-md shadow-craft-md transition-all duration-200 flex items-center gap-2 group"
               >
-                Explore Artisanal Catalog
+                {settings.hero_primary_cta_text}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
 
               <a
-                href="#collections"
+                href={settings.hero_secondary_cta_link}
+                target={settings.hero_secondary_cta_link.startsWith('http') ? '_blank' : '_self'}
+                rel="noreferrer"
                 className="px-6 py-3.5 bg-sandstone hover:bg-chiseled text-charcoal font-medium text-sm rounded-md border border-border transition-all duration-200"
               >
-                Browse Craft Regions
+                {settings.hero_secondary_cta_text}
               </a>
             </div>
 
@@ -124,7 +129,7 @@ export default async function HomePage() {
           <div className="lg:col-span-6 relative">
             <div className="relative aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-xl overflow-hidden shadow-craft-lg border-2 border-border/80 group">
               <Image
-                src="/images/hero/craft-hero.png"
+                src={settings.hero_image_url || '/images/hero/craft-hero.png'}
                 alt="Pakistani Luxury Craft Showcase"
                 fill
                 priority
@@ -153,26 +158,11 @@ export default async function HomePage() {
         <div className="flex whitespace-nowrap animate-ticker-slide">
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex items-center gap-12 text-parchment/90 font-serif text-sm tracking-widest uppercase">
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brass" /> Multan Blue Pottery
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brass" /> Swat Valley Walnut Carvings
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brass" /> Karachi & Quetta Onyx Marble
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brass" /> Rawalpindi Truck Art Kettles
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brass" /> Chiniot Chiseled Brass
-              </span>
-              <span>•</span>
+              {settings.ticker_text.split('•').map((item, idx) => (
+                <span key={idx} className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-brass" /> {item.trim()}
+                </span>
+              ))}
             </div>
           ))}
         </div>
@@ -256,13 +246,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 5. Heritage Story Spotlight: "From Raw Clay to Kiln" */}
+      {/* 5. Dynamic Heritage Story Spotlight */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-parchment rounded-2xl border-2 border-border p-8 md:p-12 shadow-craft-md">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-5 relative aspect-[4/5] rounded-xl overflow-hidden shadow-craft-sm border border-border">
               <Image
-                src="/images/collections/blue-pottery.png"
+                src={settings.story_image_before || '/images/collections/blue-pottery.png'}
                 alt="Multani Blue Pottery Artisan Process"
                 fill
                 className="object-cover"
@@ -273,11 +263,10 @@ export default async function HomePage() {
                 Artisanal Provenance & Technique
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-charcoal leading-snug">
-                From Raw Chenab Riverbed Clay <br />
-                <span className="text-lapis italic font-normal">To Kiln & Heritage Home</span>
+                {settings.story_heading}
               </h2>
               <p className="text-sm text-muted leading-relaxed">
-                Multani Blue Pottery (Kashi Kari) dates back over 700 years. Master potters knead local red clay mixed with quartz powder, shape it on manual wooden wheels, and paint intricate floral patterns using handmade squirrel-hair brushes soaked in lapis cobalt and copper oxide pigments.
+                {settings.story_subheading}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

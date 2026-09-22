@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { SheetProductRow, slugify } from '@/lib/validations/product';
 import { extractDriveFolderImages, isGoogleDriveLink } from '@/lib/storage/google-drive';
+import { parseExcelBuffer, parseGoogleSheetUrl, ParsedRowResult } from '@/lib/parsers/excel';
 import { revalidatePath } from 'next/cache';
 
 export interface SingleProductPayload {
@@ -486,4 +487,159 @@ export async function bulkDeleteProducts(
     return { success: false, error: 'Failed to delete products.' };
   }
 }
+
+export async function previewGoogleSheetUrl(sheetUrl: string): Promise<{
+  success: boolean;
+  validRows?: SheetProductRow[];
+  results?: ParsedRowResult[];
+  invalidCount?: number;
+  error?: string;
+}> {
+  try {
+    if (!sheetUrl || !sheetUrl.trim()) {
+      return { success: false, error: 'Google Sheet URL is required.' };
+    }
+
+    const parsedSheet = parseGoogleSheetUrl(sheetUrl.trim());
+    if (!parsedSheet) {
+      return {
+        success: false,
+        error: 'Invalid Google Sheet URL. Format must be: https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit#gid={GID}',
+      };
+    }
+
+    const response = await fetch(parsedSheet.csvExportUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      },
+      redirect: 'follow',
+      cache: 'no-store',
+    });
+
+    if (!response.ok || response.url.includes('accounts.google.com')) {
+      return {
+        success: false,
+        error: 'Google Sheet is not public. Please open your Google Sheet, click Share, and set access to "Anyone with the link can view".',
+      };
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return {
+        success: false,
+        error: 'Google Sheet is not public or requires login. Set sheet permissions to "Anyone with link can view".',
+      };
+    }
+
+    const csvText = await response.text();
+    if (!csvText || csvText.trim().length === 0) {
+      return { success: false, error: 'Google Sheet returned an empty CSV dataset.' };
+    }
+
+    const buffer = Buffer.from(csvText, 'utf-8');
+    const { validRows, results, invalidCount } = await parseExcelBuffer(buffer, true);
+
+    return {
+      success: true,
+      validRows,
+      results,
+      invalidCount,
+    };
+  } catch (err: any) {
+    console.error('previewGoogleSheetUrl Exception:', err);
+    return {
+      success: false,
+      error: err.message || 'Failed to fetch Google Sheet preview.',
+    };
+  }
+}
+
+export async function importFromGoogleSheetUrl(sheetUrl: string): Promise<{
+  success: boolean;
+  count?: number;
+  invalidCount?: number;
+  parsedRows?: ParsedRowResult[];
+  error?: string;
+}> {
+  try {
+    if (!sheetUrl || !sheetUrl.trim()) {
+      return { success: false, error: 'Google Sheet URL is required.' };
+    }
+
+    const parsedSheet = parseGoogleSheetUrl(sheetUrl.trim());
+    if (!parsedSheet) {
+      return {
+        success: false,
+        error: 'Invalid Google Sheet URL. Format must be: https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit#gid={GID}',
+      };
+    }
+
+    const response = await fetch(parsedSheet.csvExportUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      },
+      redirect: 'follow',
+      cache: 'no-store',
+    });
+
+    if (!response.ok || response.url.includes('accounts.google.com')) {
+      return {
+        success: false,
+        error: 'Google Sheet is not public. Please open your Google Sheet, click Share, and set access to "Anyone with the link can view".',
+      };
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return {
+        success: false,
+        error: 'Google Sheet is not public or requires login. Set sheet permissions to "Anyone with link can view".',
+      };
+    }
+
+    const csvText = await response.text();
+    if (!csvText || csvText.trim().length === 0) {
+      return { success: false, error: 'Google Sheet returned an empty CSV dataset.' };
+    }
+
+    const buffer = Buffer.from(csvText, 'utf-8');
+    const { validRows, results, invalidCount } = await parseExcelBuffer(buffer, true);
+
+    if (validRows.length === 0) {
+      return {
+        success: false,
+        invalidCount,
+        parsedRows: results,
+        error: 'No valid product rows were found in the Google Sheet.',
+      };
+    }
+
+    const bulkRes = await bulkUpsertProducts(validRows);
+
+    if (bulkRes.success) {
+      revalidatePath('/products');
+      revalidatePath('/admin/products');
+      revalidatePath('/');
+
+      return {
+        success: true,
+        count: bulkRes.insertedCount || validRows.length,
+        invalidCount,
+        parsedRows: results,
+      };
+    } else {
+      return {
+        success: false,
+        error: bulkRes.error || 'Failed to upsert products from Google Sheet.',
+      };
+    }
+  } catch (err: any) {
+    console.error('importFromGoogleSheetUrl Exception:', err);
+    return {
+      success: false,
+      error: err.message || 'Failed to fetch or parse Google Sheet.',
+    };
+  }
+}
+
 

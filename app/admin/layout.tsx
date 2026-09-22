@@ -42,6 +42,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
 
             <Link
+              href="/admin/homepage"
+              className="flex items-center gap-2.5 px-3 py-2 text-charcoal hover:bg-parchment rounded-md transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4 text-brass" />
+              <span>Home Page CMS</span>
+            </Link>
+
+            <Link
               href="/admin/import"
               className="flex items-center gap-2.5 px-3 py-2 text-charcoal hover:bg-parchment rounded-md transition-colors"
             >
