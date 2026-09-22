@@ -59,9 +59,31 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const storeJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Store',
+    name: 'Ghazali Handicrafts',
+    image: 'https://ghazalihandicrafts.com/images/hero/craft-hero.png',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '27 New Anarkali',
+      addressLocality: 'Lahore',
+      addressRegion: 'Punjab',
+      addressCountry: 'PK',
+    },
+    hasMap: 'https://maps.app.goo.gl/fbt2FunN1MfoD7Px6',
+    priceRange: 'PKR',
+    currenciesAccepted: 'PKR',
+    paymentAccepted: 'Cash on Delivery',
+  };
+
   return (
     <html lang="en" className={`${cormorant.variable} ${jakarta.variable}`}>
       <body className="bg-background text-foreground antialiased selection:bg-brass/30 flex flex-col min-h-screen">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+        />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

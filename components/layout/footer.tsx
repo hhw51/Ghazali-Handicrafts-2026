@@ -140,23 +140,35 @@ export function Footer() {
           {/* Customer Service & Policies */}
           <div>
             <h5 className="font-serif text-base font-semibold text-brass tracking-wide mb-4">
-              Customer Care & COD
+              Flagship Store & Customer Care
             </h5>
             <ul className="space-y-2 text-xs text-parchment/80">
               <li>
-                <span className="text-parchment/90">Dispatch Time:</span> 24-48 Hours
+                <span className="text-parchment/90 font-semibold block text-brass">Flagship Location:</span>
+                <a
+                  href="https://maps.app.goo.gl/fbt2FunN1MfoD7Px6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-brass underline transition-colors flex items-center gap-1 mt-0.5"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-terracotta shrink-0" />
+                  27 New Anarkali, Lahore, Punjab, Pakistan
+                </a>
+              </li>
+              <li className="pt-1">
+                <span className="text-parchment/90 font-medium">Dispatch Time:</span> 24-48 Hours
               </li>
               <li>
-                <span className="text-parchment/90">Payment Method:</span> Cash on Delivery (COD)
+                <span className="text-parchment/90 font-medium">Payment Method:</span> Cash on Delivery (COD)
               </li>
               <li>
-                <span className="text-parchment/90">Fragile Guarantee:</span> Full replacement if damaged in transit
+                <span className="text-parchment/90 font-medium">Fragile Guarantee:</span> 100% Crate Buffer Replacement
               </li>
               <li>
-                <span className="text-parchment/90">Support Phone:</span> +92 300 1234567
+                <span className="text-parchment/90 font-medium">Support Phone:</span> +92 300 1234567
               </li>
               <li>
-                <span className="text-parchment/90">Support Email:</span> concierge@ghazalihandicrafts.com
+                <span className="text-parchment/90 font-medium">Support Email:</span> concierge@ghazalihandicrafts.com
               </li>
             </ul>
           </div>
