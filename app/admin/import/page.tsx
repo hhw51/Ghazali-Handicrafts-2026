@@ -210,7 +210,17 @@ export default function AdminImportPage() {
                       )}
                     </td>
                     <td className="p-3 font-mono">
-                      {Array.isArray(res.row.images) ? `${res.row.images.length} URLs` : '0'}
+                      {Array.isArray(res.row.images) && res.row.images.length > 0 ? (
+                        res.row.images[0].includes('drive.google.com') ? (
+                          <span className="px-2 py-0.5 bg-lapis/10 text-lapis font-semibold rounded text-[10px] flex items-center gap-1 w-max">
+                            📁 Google Drive Folder (Auto-Sync)
+                          </span>
+                        ) : (
+                          `${res.row.images.length} URLs`
+                        )
+                      ) : (
+                        'Default Asset'
+                      )}
                     </td>
                     <td className="p-3 text-red-600 text-[11px]">
                       {res.errors.length > 0 ? res.errors.join('; ') : '—'}
