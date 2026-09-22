@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Product, Review } from '@/types/product';
 import { AccordionSection } from '@/components/products/pdp-accordion';
 import { PdpActions } from '@/components/products/pdp-actions';
@@ -14,20 +14,65 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getProductAndReviews(slug: string) {
+async function getProductAndReviews(rawSlug: string) {
   try {
-    const supabase = await createClient();
+    const decodedSlug = decodeURIComponent(rawSlug);
+    console.log('[ProductPage] Incoming raw slug:', rawSlug);
+    console.log('[ProductPage] Decoded slug:', decodedSlug);
 
-    const { data: product, error } = await supabase
+    const supabase = createAdminClient();
+
+    // 1. Direct match by exact slug
+    let { data: product, error } = await supabase
       .from('products')
       .select('*, category:categories(*)')
-      .eq('slug', slug)
-      .single();
+      .eq('slug', decodedSlug)
+      .maybeSingle();
 
-    if (error || !product) {
+    console.log('[ProductPage] DB Result (exact slug):', { product, error });
+
+    // 2. Fallback: Case-insensitive / partial slug match
+    if (!product) {
+      const { data: ilikeProduct, error: ilikeErr } = await supabase
+        .from('products')
+        .select('*, category:categories(*)')
+        .ilike('slug', `%${decodedSlug}%`)
+        .limit(1)
+        .maybeSingle();
+
+      console.log('[ProductPage] Fallback ilike slug result:', { ilikeProduct, ilikeErr });
+      if (ilikeProduct) {
+        product = ilikeProduct;
+      }
+    }
+
+    // 3. Fallback: Match by product title keywords if slug differs
+    if (!product) {
+      const keywords = decodedSlug
+        .split('-')
+        .filter((w) => w.length > 2 && !['inch', 'kg', 'raw', 'lamp', 'the'].includes(w));
+      
+      if (keywords.length > 0) {
+        const titleQuery = keywords.slice(0, 3).join('%');
+        const { data: nameProduct, error: nameErr } = await supabase
+          .from('products')
+          .select('*, category:categories(*)')
+          .ilike('name', `%${titleQuery}%`)
+          .limit(1)
+          .maybeSingle();
+
+        console.log('[ProductPage] Fallback title search result:', { nameProduct, nameErr });
+        if (nameProduct) {
+          product = nameProduct;
+        }
+      }
+    }
+
+    if (!product) {
       return { product: null, reviews: [] };
     }
 
+    // Fetch reviews for resolved product
     const { data: reviews } = await supabase
       .from('reviews')
       .select('*')
@@ -39,14 +84,14 @@ async function getProductAndReviews(slug: string) {
       reviews: (reviews as Review[]) || [],
     };
   } catch (err) {
-    console.error('Error loading PDP:', err);
+    console.error('[ProductPage] Exception loading product:', err);
     return { product: null, reviews: [] };
   }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await params;
-  const { product } = await getProductAndReviews(resolvedParams.slug);
+  const { slug } = await params;
+  const { product } = await getProductAndReviews(slug);
 
   if (!product) {
     return {
@@ -66,8 +111,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const { product, reviews } = await getProductAndReviews(resolvedParams.slug);
+  const { slug } = await params;
+  console.log('[ProductPage] Incoming slug from URL:', slug);
+
+  const { product, reviews } = await getProductAndReviews(slug);
 
   if (!product) {
     notFound();

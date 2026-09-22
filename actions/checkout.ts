@@ -145,11 +145,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
     const orderNumber = newOrder.id.slice(0, 8).toUpperCase();
 
     try {
-      console.log('[Order Notification] Triggering dispatch for:', {
-        orderNumber,
-        phone: customer.customer_phone.replace(/\s+/g, ''),
-        channel: 'whatsapp',
-      });
+      console.log('[Order Notification] Awaiting post-checkout notifications dispatch for order:', orderNumber);
 
       await sendOrderNotifications({
         orderNumber,

@@ -10,7 +10,6 @@ interface CheckoutOrderSummaryProps {
   shippingFee: number;
   total: number;
   isSubmitting: boolean;
-  isPhoneVerified: boolean;
   onSubmitOrder: () => void;
 }
 
@@ -20,7 +19,6 @@ export function CheckoutOrderSummary({
   shippingFee,
   total,
   isSubmitting,
-  isPhoneVerified,
   onSubmitOrder,
 }: CheckoutOrderSummaryProps) {
   return (
@@ -95,9 +93,9 @@ export function CheckoutOrderSummary({
       <button
         type="button"
         onClick={onSubmitOrder}
-        disabled={isSubmitting || !isPhoneVerified || items.length === 0}
+        disabled={isSubmitting || items.length === 0}
         className={`w-full py-4 px-6 rounded-md font-medium text-xs flex items-center justify-center gap-2 shadow-craft-md transition-all duration-200 uppercase tracking-wider font-sans ${
-          isPhoneVerified && items.length > 0 && !isSubmitting
+          items.length > 0 && !isSubmitting
             ? 'bg-lapis hover:bg-lapis/90 text-parchment'
             : 'bg-stone/30 text-stone cursor-not-allowed'
         }`}
@@ -106,11 +104,9 @@ export function CheckoutOrderSummary({
           <>
             <RefreshCw className="w-4 h-4 animate-spin text-brass" /> Processing Order...
           </>
-        ) : !isPhoneVerified ? (
-          'Please Verify Mobile Number First'
         ) : (
           <>
-            Complete Order via Cash on Delivery <ArrowRight className="w-4 h-4" />
+            Place Order (Cash on Delivery) <ArrowRight className="w-4 h-4" />
           </>
         )}
       </button>

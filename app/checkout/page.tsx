@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart-store';
-import { OtpVerificationStep } from '@/components/checkout/otp-verification-step';
 import { ShippingFormStep } from '@/components/checkout/shipping-form-step';
 import { PaymentMethodStep } from '@/components/checkout/payment-method-step';
 import { CheckoutOrderSummary } from '@/components/checkout/checkout-order-summary';
@@ -21,7 +20,6 @@ export default function CheckoutPage() {
 
   const { items, getSubtotal, getShippingFee, getTotal, clearCart } = useCartStore();
 
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [formData, setFormData] = useState<CheckoutFormValues>({
     customer_name: '',
     customer_phone: '',
@@ -51,26 +49,16 @@ export default function CheckoutPage() {
     if (formError) setFormError(null);
   };
 
-  const handlePhoneChange = (phone: string) => {
-    handleFieldChange('customer_phone', phone);
-    if (isPhoneVerified) setIsPhoneVerified(false);
-  };
-
   const handleSubmitOrder = async () => {
     setFormError(null);
     setFieldErrors({});
-
-    if (!isPhoneVerified) {
-      setFormError('Please verify your mobile phone number using the 4-digit SMS code in Step 1.');
-      return;
-    }
 
     if (items.length === 0) {
       setFormError('Your shopping bag is empty. Please add craft items before placing an order.');
       return;
     }
 
-    // Validate form values using Zod
+    // Validate customer form values using Zod schema
     const validation = checkoutFormSchema.safeParse(formData);
     if (!validation.success) {
       const errorsMap: Record<string, string> = {};
@@ -80,7 +68,7 @@ export default function CheckoutPage() {
         }
       });
       setFieldErrors(errorsMap);
-      setFormError('Please correct the highlighted form errors before completing your order.');
+      setFormError('Please complete all required fields correctly before placing your order.');
       return;
     }
 
@@ -140,7 +128,7 @@ export default function CheckoutPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Left Column: 3 Steps Form */}
+          {/* Left Column: Checkout Form Steps */}
           <div className="lg:col-span-7 space-y-6">
             {formError && (
               <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs flex items-start gap-2 animate-in fade-in">
@@ -148,13 +136,6 @@ export default function CheckoutPage() {
                 <span>{formError}</span>
               </div>
             )}
-
-            <OtpVerificationStep
-              phone={formData.customer_phone}
-              onPhoneChange={handlePhoneChange}
-              isVerified={isPhoneVerified}
-              onVerifiedChange={setIsPhoneVerified}
-            />
 
             <ShippingFormStep
               formData={formData}
@@ -173,7 +154,6 @@ export default function CheckoutPage() {
               shippingFee={shippingFee}
               total={total}
               isSubmitting={isSubmitting}
-              isPhoneVerified={isPhoneVerified}
               onSubmitOrder={handleSubmitOrder}
             />
           </div>
