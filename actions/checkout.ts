@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkoutFormSchema, CheckoutFormValues } from '@/lib/validations/checkout';
+import { sendOrderNotifications } from '@/lib/notifications/order-notifier';
 
 interface CartItemPayload {
   productId: string;
@@ -130,6 +131,29 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
       console.error('Error creating order items:', itemsErr);
       return { success: false, error: 'Order created, but items failed to record. Contact support.' };
     }
+
+    // 7. Trigger Post-Checkout Order Notifications (WhatsApp, SMS, Brevo Email)
+    const notificationItems = payload.items.map((item) => {
+      const prod = dbProductMap.get(item.productId);
+      return {
+        name: prod?.name || 'Craft Item',
+        quantity: item.quantity,
+        price: Number(prod?.price || 0),
+      };
+    });
+
+    const orderNumber = newOrder.id.slice(0, 8).toUpperCase();
+
+    sendOrderNotifications({
+      orderNumber,
+      customerName: customer.customer_name,
+      phone: customer.customer_phone.replace(/\s+/g, ''),
+      email: customer.customer_email || undefined,
+      items: notificationItems,
+      totalAmount,
+      shippingAddress: customer.address,
+      city: customer.city,
+    }).catch((notifErr) => console.error('Asynchronous order notification error:', notifErr));
 
     return {
       success: true,
