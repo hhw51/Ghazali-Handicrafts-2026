@@ -15,6 +15,7 @@ export interface SingleProductPayload {
   long_description?: string;
   size?: string;
   colors?: string;
+  design?: string | null;
   weight?: number;
   in_stock: boolean;
   tags?: string[];
@@ -117,6 +118,7 @@ export async function createSingleProduct(payload: SingleProductPayload): Promis
           in_stock: payload.in_stock,
           images: finalImageUrls,
           colors: payload.colors || null,
+          design: payload.design || null,
           category_id: catData.id,
           weight: payload.weight || 0,
           tags: payload.tags || [],
@@ -218,6 +220,8 @@ export async function ingestSingleProductRow(row: SheetProductRow): Promise<Inge
 
     // 3. Fallback placeholder ONLY if uploadedUrls.length === 0 after checking Drive
     const finalImages = uploadedUrls.length > 0 ? uploadedUrls : ['/images/hero/craft-hero.png'];
+
+    console.log('[Ingest] Product:', prodSlug, 'Design:', row.design);
 
     // 4. Upsert product record into Supabase
     const { data: product, error: insertErr } = await supabase
@@ -516,6 +520,7 @@ export async function updateProduct(
         long_description: payload.long_description || null,
         size: payload.size || null,
         colors: payload.colors || null,
+        design: payload.design || null,
         weight: payload.weight || 0,
         in_stock: payload.in_stock,
         images: finalImageUrls,

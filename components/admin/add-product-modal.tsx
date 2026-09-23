@@ -22,6 +22,7 @@ export function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalP
   const [weight, setWeight] = useState('');
   const [size, setSize] = useState('');
   const [colors, setColors] = useState('');
+  const [design, setDesign] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [longDescription, setLongDescription] = useState('');
   const [inStock, setInStock] = useState(true);
@@ -82,6 +83,7 @@ export function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalP
     setWeight('');
     setSize('');
     setColors('');
+    setDesign('');
     setShortDescription('');
     setLongDescription('');
     setDriveFolderLink('');
@@ -101,6 +103,7 @@ export function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalP
       weight: parseFloat(weight) || 0,
       size: size.trim(),
       colors: colors.trim(),
+      design: design.trim() || null,
       short_description: shortDescription.trim(),
       long_description: longDescription.trim(),
       in_stock: inStock,
@@ -254,6 +257,19 @@ export function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalP
                 className="w-full px-3 py-2 bg-sandstone border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-brass text-charcoal"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-charcoal mb-1">
+              Design / Pattern (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Floral Inlay, Swati Relief, Mughal Arch (comma-separated if multiple)"
+              value={design}
+              onChange={(e) => setDesign(e.target.value)}
+              className="w-full px-3 py-2 bg-sandstone border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-brass text-charcoal"
+            />
           </div>
 
           {/* Short & Long Descriptions */}

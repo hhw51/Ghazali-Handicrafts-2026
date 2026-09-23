@@ -208,6 +208,7 @@ export function AdminProductsTable({
                 <th className="p-4">Thumbnail</th>
                 <th className="p-4">Product Name & Slug</th>
                 <th className="p-4">Craft Category</th>
+                <th className="p-4">Design</th>
                 <th className="p-4">Price (PKR)</th>
                 <th className="p-4">Weight</th>
                 <th className="p-4">Stock Status</th>
@@ -216,7 +217,7 @@ export function AdminProductsTable({
             <tbody className="divide-y divide-border/60">
               {productList.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-muted">
+                  <td colSpan={9} className="p-8 text-center text-muted">
                     No products found in catalog. Use "+ Add Product" or "Bulk Excel Import" to add products.
                   </td>
                 </tr>
@@ -315,6 +316,17 @@ export function AdminProductsTable({
                           </span>
                         ) : (
                           <span className="text-muted italic">Uncategorized</span>
+                        )}
+                      </td>
+
+                      {/* Design Badge */}
+                      <td className="p-4">
+                        {product.design ? (
+                          <span className="px-2 py-0.5 text-xs bg-stone-100 rounded text-charcoal font-medium border border-border">
+                            {product.design}
+                          </span>
+                        ) : (
+                          <span className="text-muted font-mono">—</span>
                         )}
                       </td>
 

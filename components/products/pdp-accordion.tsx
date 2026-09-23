@@ -29,6 +29,11 @@ export function AccordionSection({ product }: AccordionSectionProps) {
               <span className="text-charcoal font-semibold">Artisan Colorways:</span> {product.colors}
             </p>
           )}
+          {product.design && (
+            <p className="font-medium text-muted">
+              <span className="text-charcoal font-semibold">Design / Pattern:</span> {product.design}
+            </p>
+          )}
         </Accordion.Content>
       </Accordion.Item>
 
