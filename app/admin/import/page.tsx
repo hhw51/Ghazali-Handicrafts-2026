@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { parseExcelBuffer, ParsedRowResult } from '@/lib/parsers/excel';
-import { bulkUpsertProducts, importFromGoogleSheetUrl, previewGoogleSheetUrl } from '@/actions/admin-products';
+import { ingestSingleProductRow, previewGoogleSheetUrl, IngestRowResult } from '@/actions/admin-products';
 import { SheetProductRow } from '@/lib/validations/product';
 import { FileSpreadsheet, UploadCloud, CheckCircle2, AlertCircle, RefreshCw, ArrowRight, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { IngestionProgressModal } from '@/components/admin/ingestion-progress-modal';
 
 export default function AdminImportPage() {
   const [activeTab, setActiveTab] = useState<'file' | 'sheets'>('file');
@@ -16,6 +17,13 @@ export default function AdminImportPage() {
   const [validRows, setValidRows] = useState<SheetProductRow[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  // Ingestion Modal & Loader State
+  const [ingestionModalOpen, setIngestionModalOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentProductName, setCurrentProductName] = useState('');
+  const [isFinished, setIsFinished] = useState(false);
+  const [ingestionResults, setIngestionResults] = useState<IngestRowResult[]>([]);
+
   // Google Sheets URL State
   const [sheetUrl, setSheetUrl] = useState('');
   const [fetchingSheet, setFetchingSheet] = useState(false);
@@ -23,6 +31,17 @@ export default function AdminImportPage() {
   // Banners
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Prevent accidental navigation during active media ingestion
+  useEffect(() => {
+    if (!uploading) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [uploading]);
 
   const handleFileChange = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -86,21 +105,39 @@ export default function AdminImportPage() {
     if (validRows.length === 0) return;
 
     setUploading(true);
+    setIngestionModalOpen(true);
+    setIsFinished(false);
+    setIngestionResults([]);
+    setCurrentIndex(0);
     setSuccessMessage(null);
     setErrorMessage(null);
 
-    const res = await bulkUpsertProducts(validRows);
+    const accumulatedResults: IngestRowResult[] = [];
+
+    for (let i = 0; i < validRows.length; i++) {
+      setCurrentIndex(i);
+      const row = validRows[i];
+      const activeName = row['short description (underneath product picture)']?.trim() || row.name;
+      setCurrentProductName(activeName);
+
+      const res = await ingestSingleProductRow(row);
+      accumulatedResults.push(res);
+      setIngestionResults([...accumulatedResults]);
+    }
+
+    setIsFinished(true);
     setUploading(false);
 
-    if (res.success) {
-      setSuccessMessage(`✓ Successfully ingested ${res.insertedCount} products into Supabase catalog!`);
-      setFile(null);
-      setResults([]);
-      setValidRows([]);
-      setSheetUrl('');
-    } else {
-      setErrorMessage(res.error || 'Failed to bulk upsert products.');
-    }
+    const successCount = accumulatedResults.filter((r) => r.success).length;
+    setSuccessMessage(`✓ Successfully ingested ${successCount} products into Supabase catalog!`);
+  };
+
+  const handleCloseModal = () => {
+    setIngestionModalOpen(false);
+    setFile(null);
+    setResults([]);
+    setValidRows([]);
+    setSheetUrl('');
   };
 
   return (
@@ -348,6 +385,19 @@ export default function AdminImportPage() {
           </div>
         </div>
       )}
+
+      {/* Ingestion Progress Modal */}
+      <IngestionProgressModal
+        isOpen={ingestionModalOpen}
+        totalItems={validRows.length}
+        currentIndex={currentIndex}
+        currentProductName={currentProductName}
+        isFinished={isFinished}
+        results={ingestionResults}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
+
+

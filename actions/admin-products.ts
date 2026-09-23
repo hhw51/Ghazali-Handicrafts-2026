@@ -145,93 +145,116 @@ export async function createSingleProduct(payload: SingleProductPayload): Promis
   }
 }
 
-export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
+export interface IngestRowResult {
   success: boolean;
-  insertedCount?: number;
+  productName: string;
+  adminName: string;
+  slug: string;
+  uploadedImagesCount: number;
+  driveError?: string;
   error?: string;
-}> {
+}
+
+export async function ingestSingleProductRow(row: SheetProductRow): Promise<IngestRowResult> {
   try {
-    if (!rows || rows.length === 0) {
-      return { success: false, error: 'No valid rows provided for bulk ingestion.' };
+    if (!row || !row.name) {
+      return {
+        success: false,
+        productName: row?.name || 'Unknown Product',
+        adminName: row?.name || 'Unknown',
+        slug: '',
+        uploadedImagesCount: 0,
+        error: 'Invalid product row data.',
+      };
     }
 
     const supabase = createAdminClient();
 
-    // 1. Collect all distinct categories from batch
-    const categoryNames = Array.from(new Set(rows.map((r) => r.category.trim()))).filter(Boolean);
-    const categoryMap = new Map<string, string>(); // category name -> category id
+    const shortDescTitle = row['short description (underneath product picture)']?.trim() || '';
+    const storefrontName = shortDescTitle.length > 0 ? shortDescTitle : row.name.trim();
+    const adminName = row.name.trim();
+    const prodSlug = slugify(storefrontName);
 
-    // Fetch or create categories
-    for (const catName of categoryNames) {
+    // 1. Ensure category exists
+    let categoryId: string | null = null;
+    if (row.category && row.category.trim()) {
+      const catName = row.category.trim();
       const catSlug = slugify(catName);
       const { data: catData, error: catErr } = await supabase
         .from('categories')
         .upsert({ name: catName, slug: catSlug }, { onConflict: 'slug' })
-        .select('id, name')
+        .select('id')
         .single();
 
       if (catErr) {
         console.error(`Error upserting category "${catName}":`, catErr);
       } else if (catData) {
-        categoryMap.set(catName.toLowerCase(), catData.id);
+        categoryId = catData.id;
       }
     }
 
-    // 2. Prepare product records for batch upsert
-    const productsToUpsert = [];
+    // 2. Process image extraction from Drive or URLs
+    let uploadedUrls: string[] = [];
+    let driveError: string | undefined = undefined;
 
-    for (const row of rows) {
-      const shortDescTitle = row['short description (underneath product picture)']?.trim() || '';
-      const storefrontName = shortDescTitle.length > 0 ? shortDescTitle : row.name.trim();
-      const adminName = row.name.trim();
-      const prodSlug = slugify(storefrontName);
-      const categoryId = categoryMap.get(row.category.trim().toLowerCase()) || null;
-
-      let finalImages = [...row.images];
-
-      // Check if image entry is a Google Drive folder link
-      const firstImg = row.images[0] || '';
-      if (isGoogleDriveLink(firstImg)) {
-        try {
-          const driveUrls = await fetchAndUploadDriveFolderImages(firstImg, prodSlug, supabase);
-          if (driveUrls.length > 0) {
-            finalImages = driveUrls;
-          }
-        } catch (dErr) {
-          console.warn(`[Ingestion Warning] Drive extraction for ${prodSlug}:`, dErr);
+    const firstImg = row.images && row.images.length > 0 ? row.images[0] : '';
+    if (isGoogleDriveLink(firstImg)) {
+      try {
+        const driveRes = await fetchAndUploadDriveFolderImages(firstImg, prodSlug, supabase);
+        if (driveRes.urls && driveRes.urls.length > 0) {
+          uploadedUrls = driveRes.urls;
         }
+        if (driveRes.error) {
+          driveError = driveRes.error;
+          console.warn(`[Drive Warning] ${prodSlug}: ${driveRes.error}`);
+        }
+      } catch (dErr: any) {
+        driveError = dErr?.message || 'Drive fetch failed';
+        console.warn(`[Drive Exception] ${prodSlug}:`, dErr);
       }
-
-      if (finalImages.length === 0) {
-        finalImages = ['/images/hero/craft-hero.png'];
-      }
-
-      productsToUpsert.push({
-        name: storefrontName,
-        admin_name: adminName,
-        slug: prodSlug,
-        short_description: shortDescTitle || null,
-        long_description: row['long description'] || null,
-        price: row.price,
-        size: row.size || null,
-        in_stock: row.stock,
-        images: finalImages,
-        colors: row.colors || null,
-        category_id: categoryId,
-        weight: row.weight || 0,
-        tags: row.tags || [],
-      });
+    } else if (row.images && row.images.length > 0) {
+      uploadedUrls = row.images.filter((img) => img && !img.includes('drive.google.com'));
     }
 
-    // 3. Perform batch upsert on products table (conflict on `slug`)
-    const { data: upsertData, error: upsertErr } = await supabase
-      .from('products')
-      .upsert(productsToUpsert, { onConflict: 'slug' })
-      .select('id');
+    // 3. Fallback placeholder ONLY if uploadedUrls.length === 0 after checking Drive
+    const finalImages = uploadedUrls.length > 0 ? uploadedUrls : ['/images/hero/craft-hero.png'];
 
-    if (upsertErr) {
-      console.error('Error during bulk product upsert:', upsertErr);
-      return { success: false, error: `Database batch upsert failed: ${upsertErr.message}` };
+    // 4. Upsert product record into Supabase
+    const { data: product, error: insertErr } = await supabase
+      .from('products')
+      .upsert(
+        {
+          name: storefrontName,
+          admin_name: adminName,
+          slug: prodSlug,
+          short_description: shortDescTitle || null,
+          long_description: row['long description'] || null,
+          price: row.price,
+          size: row.size || null,
+          in_stock: row.stock,
+          images: finalImages,
+          colors: row.colors || null,
+          category_id: categoryId,
+          weight: row.weight || 0,
+          tags: row.tags || [],
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'slug' }
+      )
+      .select('id')
+      .single();
+
+    if (insertErr) {
+      console.error(`[Ingestion Error] Failed to upsert ${prodSlug}:`, insertErr);
+      return {
+        success: false,
+        productName: storefrontName,
+        adminName,
+        slug: prodSlug,
+        uploadedImagesCount: uploadedUrls.length,
+        driveError,
+        error: insertErr.message,
+      };
     }
 
     revalidatePath('/products');
@@ -240,13 +263,58 @@ export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
 
     return {
       success: true,
-      insertedCount: upsertData?.length || productsToUpsert.length,
+      productName: storefrontName,
+      adminName,
+      slug: prodSlug,
+      uploadedImagesCount: uploadedUrls.length,
+      driveError,
     };
-  } catch (err) {
+  } catch (err: any) {
+    console.error(`ingestSingleProductRow Exception:`, err);
+    return {
+      success: false,
+      productName: row?.name || 'Unknown',
+      adminName: row?.name || 'Unknown',
+      slug: '',
+      uploadedImagesCount: 0,
+      error: err?.message || 'Failed to ingest single product row.',
+    };
+  }
+}
+
+export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
+  success: boolean;
+  insertedCount?: number;
+  results?: IngestRowResult[];
+  error?: string;
+}> {
+  try {
+    if (!rows || rows.length === 0) {
+      return { success: false, error: 'No valid rows provided for bulk ingestion.' };
+    }
+
+    const results: IngestRowResult[] = [];
+    for (const row of rows) {
+      const res = await ingestSingleProductRow(row);
+      results.push(res);
+    }
+
+    const successfulCount = results.filter((r) => r.success).length;
+
+    revalidatePath('/products');
+    revalidatePath('/admin/products');
+    revalidatePath('/');
+
+    return {
+      success: successfulCount > 0,
+      insertedCount: successfulCount,
+      results,
+    };
+  } catch (err: any) {
     console.error('bulkUpsertProducts Exception:', err);
     return {
       success: false,
-      error: 'An unexpected error occurred during bulk ingestion.',
+      error: err?.message || 'An unexpected error occurred during bulk ingestion.',
     };
   }
 }
