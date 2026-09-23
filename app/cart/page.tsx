@@ -13,6 +13,7 @@ export default function CartPage() {
     removeItem,
     updateQuantity,
     updateVariant,
+    updateUnitSelection,
     getSubtotal,
     getShippingFee,
     getTotal,
@@ -96,71 +97,76 @@ export default function CartPage() {
             </div>
 
             <div className="bg-sandstone rounded-xl border border-border overflow-hidden divide-y divide-border">
-              {items.map(({ product, quantity, selectedColor, selectedDesign, unitBreakdown }) => {
-                const colorOptions = product.colors
-                  ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
-                  : [];
-                const designOptions = product.design
-                  ? product.design.split(',').map((d) => d.trim()).filter(Boolean)
-                  : [];
+              {items.map((item) => {
+                const product = item.product || {
+                  id: item.productId,
+                  name: item.name,
+                  price: item.price,
+                  images: [item.image],
+                  slug: item.id,
+                  in_stock: true,
+                };
 
-                const currentColor = selectedColor || colorOptions[0] || '';
-                const currentDesign = selectedDesign || designOptions[0] || '';
+                const availableColors = item.availableColors || (item.product?.colors
+                  ? item.product.colors.split(',').map((c) => c.trim()).filter(Boolean)
+                  : []);
+                const availableDesigns = item.availableDesigns || (item.product?.design
+                  ? item.product.design.split(',').map((d) => d.trim()).filter(Boolean)
+                  : []);
 
-                const sizeText = product.size
-                  ? /^\d+(\.\d+)?$/.test(product.size.trim())
-                    ? `${product.size.trim()} inches`
-                    : product.size
+                const unitList = item.unitSelections || item.unitBreakdown || Array.from({ length: item.quantity }, () => ({
+                  color: availableColors[0],
+                  design: availableDesigns[0],
+                }));
+
+                const sizeText = item.product?.size
+                  ? /^\d+(\.\d+)?$/.test(String(item.product.size).trim())
+                    ? `${String(item.product.size).trim()} inches`
+                    : String(item.product.size)
                   : null;
 
                 return (
                   <div
-                    key={product.id}
+                    key={item.productId || product.id}
                     className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-4 flex-1">
                       <div className="w-20 h-24 relative bg-parchment rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
                         <Image
-                          src={product.images[0] || '/images/hero/craft-hero.png'}
-                          alt={product.name}
+                          src={item.image || product.images?.[0] || '/images/hero/craft-hero.png'}
+                          alt={item.name || product.name}
                           fill
                           className="object-cover"
                         />
                       </div>
-                      <div className="space-y-1 min-w-0">
+                      <div className="space-y-1.5 flex-1 min-w-0">
                         <Link
-                          href={`/products/${product.slug}`}
+                          href={`/products/${product.slug || item.productId}`}
                           className="font-serif text-base font-semibold text-charcoal hover:text-lapis transition-colors line-clamp-1"
                         >
-                          {product.name}
+                          {item.name || product.name}
                         </Link>
 
-                        {/* Dynamic Inline Variant Dropdowns */}
-                        {(colorOptions.length > 0 || designOptions.length > 0 || sizeText || (unitBreakdown && unitBreakdown.length > 0)) && (
-                          <div className="pt-1 text-xs space-y-1">
-                            {unitBreakdown && unitBreakdown.length > 1 ? (
-                              <div className="bg-parchment p-2.5 rounded-md border border-border space-y-1 font-mono text-[11px]">
-                                <span className="font-sans font-bold text-charcoal block text-xs">Itemized Unit Breakdown:</span>
-                                {unitBreakdown.map((ub, idx) => (
-                                  <div key={idx} className="flex justify-between text-muted">
-                                    <span>Item {idx + 1}:</span>
-                                    <span className="font-sans text-charcoal font-medium">
-                                      {[ub.color, ub.design].filter(Boolean).join(' / ') || 'Default'}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="flex flex-wrap items-center gap-3">
-                                {colorOptions.length > 0 && (
-                                  <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
-                                    <span className="text-muted font-medium">Color:</span>
+                        {/* Per-Unit Dropdown Breakdown */}
+                        <div className="pt-1 space-y-1.5 bg-parchment p-2.5 rounded-md border border-border">
+                          <span className="font-sans font-bold text-charcoal block text-xs">
+                            Unit Variant Breakdown ({item.quantity} unit{item.quantity > 1 ? 's' : ''}):
+                          </span>
+                          {unitList.map((unit, idx) => (
+                            <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1 border-t border-border/40 first:border-0 first:pt-0">
+                              <span className="font-semibold text-charcoal/90 font-mono text-xs">
+                                Item {idx + 1}:
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {availableColors.length > 0 && (
+                                  <div className="flex items-center gap-1.5 bg-sandstone px-2 py-1 rounded border border-border">
+                                    <span className="text-muted font-medium text-xs">Color:</span>
                                     <select
-                                      value={currentColor}
-                                      onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
-                                      className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
+                                      value={unit.color || availableColors[0] || ''}
+                                      onChange={(e) => updateUnitSelection(product.id || item.productId, idx, 'color', e.target.value)}
+                                      className="bg-transparent text-charcoal font-semibold text-xs focus:outline-none cursor-pointer"
                                     >
-                                      {colorOptions.map((c) => (
+                                      {availableColors.map((c) => (
                                         <option key={c} value={c}>
                                           {c}
                                         </option>
@@ -169,15 +175,15 @@ export default function CartPage() {
                                   </div>
                                 )}
 
-                                {designOptions.length > 0 && (
-                                  <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
-                                    <span className="text-muted font-medium">Design:</span>
+                                {availableDesigns.length > 0 && (
+                                  <div className="flex items-center gap-1.5 bg-sandstone px-2 py-1 rounded border border-border">
+                                    <span className="text-muted font-medium text-xs">Design:</span>
                                     <select
-                                      value={currentDesign}
-                                      onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
-                                      className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
+                                      value={unit.design || availableDesigns[0] || ''}
+                                      onChange={(e) => updateUnitSelection(product.id || item.productId, idx, 'design', e.target.value)}
+                                      className="bg-transparent text-charcoal font-semibold text-xs focus:outline-none cursor-pointer"
                                     >
-                                      {designOptions.map((d) => (
+                                      {availableDesigns.map((d) => (
                                         <option key={d} value={d}>
                                           {d}
                                         </option>
@@ -185,19 +191,18 @@ export default function CartPage() {
                                     </select>
                                   </div>
                                 )}
-
-                                {sizeText && (
-                                  <span className="text-muted bg-parchment px-2 py-1 rounded-md border border-border text-xs">
-                                    Size: {sizeText}
-                                  </span>
-                                )}
                               </div>
-                            )}
-                          </div>
-                        )}
+                            </div>
+                          ))}
+                          {sizeText && (
+                            <span className="text-xs text-muted inline-block mt-1">
+                              Size: {sizeText}
+                            </span>
+                          )}
+                        </div>
 
                         <p className="font-serif text-sm font-bold text-terracotta mt-1">
-                          Rs. {product.price.toLocaleString()} PKR
+                          Rs. {(item.price || product.price).toLocaleString()} PKR
                         </p>
                       </div>
                     </div>
@@ -206,17 +211,17 @@ export default function CartPage() {
                       {/* Quantity Selector Stepper */}
                       <div className="flex items-center border border-border rounded-md bg-parchment overflow-hidden shadow-xs">
                         <button
-                          onClick={() => updateQuantity(product.id, quantity - 1)}
+                          onClick={() => updateQuantity(product.id || item.productId, item.quantity - 1)}
                           className="px-3 py-1.5 text-charcoal hover:bg-sandstone text-xs transition-colors cursor-pointer"
                           aria-label="Decrease quantity"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="px-3 py-1.5 text-xs font-semibold font-mono text-charcoal min-w-[32px] text-center">
-                          {quantity}
+                          {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(product.id, quantity + 1)}
+                          onClick={() => updateQuantity(product.id || item.productId, item.quantity + 1)}
                           disabled={!product.in_stock}
                           className="px-3 py-1.5 text-charcoal hover:bg-sandstone text-xs transition-colors disabled:opacity-40 cursor-pointer"
                           aria-label="Increase quantity"
@@ -227,12 +232,12 @@ export default function CartPage() {
 
                       <div className="text-right font-mono">
                         <p className="text-sm font-bold text-charcoal">
-                          Rs. {(product.price * quantity).toLocaleString()}
+                          Rs. {((item.price || product.price) * item.quantity).toLocaleString()}
                         </p>
                       </div>
 
                       <button
-                        onClick={() => removeItem(product.id)}
+                        onClick={() => removeItem(product.id || item.productId)}
                         className="text-muted hover:text-terracotta p-2 transition-colors cursor-pointer"
                         aria-label="Remove item"
                       >

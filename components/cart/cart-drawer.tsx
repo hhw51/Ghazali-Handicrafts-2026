@@ -16,6 +16,7 @@ export function CartDrawer() {
     removeItem,
     updateQuantity,
     updateVariant,
+    updateUnitSelection,
     getSubtotal,
     getShippingFee,
     getTotal,
@@ -114,30 +115,41 @@ export function CartDrawer() {
                 </Link>
               </div>
             ) : (
-              items.map(({ product, quantity, selectedColor, selectedDesign, unitBreakdown }) => {
-                const colorOptions = product.colors
-                  ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
-                  : [];
-                const designOptions = product.design
-                  ? product.design.split(',').map((d) => d.trim()).filter(Boolean)
-                  : [];
+              items.map((item) => {
+                const product = item.product || {
+                  id: item.productId,
+                  name: item.name,
+                  price: item.price,
+                  images: [item.image],
+                  slug: item.id,
+                  in_stock: true,
+                };
 
-                const currentColor = selectedColor || colorOptions[0] || '';
-                const currentDesign = selectedDesign || designOptions[0] || '';
+                const availableColors = item.availableColors || (item.product?.colors
+                  ? item.product.colors.split(',').map((c) => c.trim()).filter(Boolean)
+                  : []);
+                const availableDesigns = item.availableDesigns || (item.product?.design
+                  ? item.product.design.split(',').map((d) => d.trim()).filter(Boolean)
+                  : []);
 
-                const sizeText = product.size
-                  ? /^\d+(\.\d+)?$/.test(product.size.trim())
-                    ? `${product.size.trim()} inches`
-                    : product.size
+                const unitList = item.unitSelections || item.unitBreakdown || Array.from({ length: item.quantity }, () => ({
+                  color: availableColors[0],
+                  design: availableDesigns[0],
+                }));
+
+                const sizeText = item.product?.size
+                  ? /^\d+(\.\d+)?$/.test(String(item.product.size).trim())
+                    ? `${String(item.product.size).trim()} inches`
+                    : String(item.product.size)
                   : null;
 
                 return (
-                  <div key={product.id} className="py-4 flex gap-4 items-start group">
+                  <div key={item.productId || product.id} className="py-4 flex gap-4 items-start group">
                     {/* Thumbnail */}
                     <div className="w-20 h-24 relative bg-sandstone rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
                       <Image
-                        src={product.images[0] || '/images/hero/craft-hero.png'}
-                        alt={product.name}
+                        src={item.image || product.images?.[0] || '/images/hero/craft-hero.png'}
+                        alt={item.name || product.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -147,14 +159,14 @@ export function CartDrawer() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
                         <Link
-                          href={`/products/${product.slug}`}
+                          href={`/products/${product.slug || item.productId}`}
                           onClick={closeDrawer}
                           className="font-serif text-sm font-semibold text-charcoal hover:text-lapis line-clamp-2 leading-snug"
                         >
-                          {product.name}
+                          {item.name || product.name}
                         </Link>
                         <button
-                          onClick={() => removeItem(product.id)}
+                          onClick={() => removeItem(product.id || item.productId)}
                           className="text-muted hover:text-terracotta p-1 transition-colors cursor-pointer"
                           aria-label="Remove item"
                         >
@@ -162,32 +174,26 @@ export function CartDrawer() {
                         </button>
                       </div>
 
-                      {/* Dynamic Inline Variant Dropdowns & Size Badge */}
-                      {(colorOptions.length > 0 || designOptions.length > 0 || sizeText || (unitBreakdown && unitBreakdown.length > 0)) && (
-                        <div className="mt-1.5 space-y-1 text-[11px]">
-                          {unitBreakdown && unitBreakdown.length > 1 ? (
-                            <div className="bg-sandstone p-2 rounded border border-border space-y-1 font-mono text-[10px]">
-                              <span className="font-sans font-bold text-charcoal block text-[11px]">Itemized Unit Breakdown:</span>
-                              {unitBreakdown.map((ub, idx) => (
-                                <div key={idx} className="flex justify-between text-muted">
-                                  <span>Item {idx + 1}:</span>
-                                  <span className="font-sans text-charcoal font-medium">
-                                    {[ub.color, ub.design].filter(Boolean).join(' / ') || 'Default'}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="flex flex-wrap items-center gap-2">
-                              {colorOptions.length > 0 && (
-                                <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
-                                  <span className="text-muted font-medium">Color:</span>
+                      {/* Per-Unit Dropdown Breakdown */}
+                      <div className="mt-2 space-y-1.5 bg-sandstone p-2 rounded-md border border-border">
+                        <span className="font-sans font-bold text-charcoal block text-[10px] uppercase tracking-wider">
+                          Unit Variant Breakdown ({item.quantity} unit{item.quantity > 1 ? 's' : ''}):
+                        </span>
+                        {unitList.map((unit, idx) => (
+                          <div key={idx} className="flex flex-wrap items-center justify-between gap-1 text-[11px] pt-1 border-t border-border/40 first:border-0 first:pt-0">
+                            <span className="font-semibold text-charcoal/90 font-mono text-[10px]">
+                              Item {idx + 1}:
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {availableColors.length > 0 && (
+                                <div className="flex items-center gap-1 bg-parchment px-1.5 py-0.5 rounded border border-border">
+                                  <span className="text-muted font-medium text-[10px]">Color:</span>
                                   <select
-                                    value={currentColor}
-                                    onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
-                                    className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
+                                    value={unit.color || availableColors[0] || ''}
+                                    onChange={(e) => updateUnitSelection(product.id || item.productId, idx, 'color', e.target.value)}
+                                    className="bg-transparent text-charcoal font-semibold text-[10px] focus:outline-none cursor-pointer"
                                   >
-                                    {colorOptions.map((c) => (
+                                    {availableColors.map((c) => (
                                       <option key={c} value={c}>
                                         {c}
                                       </option>
@@ -196,15 +202,15 @@ export function CartDrawer() {
                                 </div>
                               )}
 
-                              {designOptions.length > 0 && (
-                                <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
-                                  <span className="text-muted font-medium">Design:</span>
+                              {availableDesigns.length > 0 && (
+                                <div className="flex items-center gap-1 bg-parchment px-1.5 py-0.5 rounded border border-border">
+                                  <span className="text-muted font-medium text-[10px]">Design:</span>
                                   <select
-                                    value={currentDesign}
-                                    onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
-                                    className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
+                                    value={unit.design || availableDesigns[0] || ''}
+                                    onChange={(e) => updateUnitSelection(product.id || item.productId, idx, 'design', e.target.value)}
+                                    className="bg-transparent text-charcoal font-semibold text-[10px] focus:outline-none cursor-pointer"
                                   >
-                                    {designOptions.map((d) => (
+                                    {availableDesigns.map((d) => (
                                       <option key={d} value={d}>
                                         {d}
                                       </option>
@@ -212,32 +218,31 @@ export function CartDrawer() {
                                   </select>
                                 </div>
                               )}
-
-                              {sizeText && (
-                                <span className="text-[11px] text-muted bg-sandstone px-1.5 py-0.5 rounded border border-border">
-                                  Size: {sizeText}
-                                </span>
-                              )}
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        ))}
+                        {sizeText && (
+                          <span className="text-[10px] text-muted inline-block mt-1">
+                            Size: {sizeText}
+                          </span>
+                        )}
+                      </div>
 
                       <div className="mt-3 flex items-center justify-between">
                         {/* Quantity Adjuster */}
                         <div className="flex items-center border border-border rounded-md bg-sandstone overflow-hidden">
                           <button
-                            onClick={() => updateQuantity(product.id, quantity - 1)}
+                            onClick={() => updateQuantity(product.id || item.productId, item.quantity - 1)}
                             className="px-2 py-1 text-charcoal hover:bg-parchment text-xs transition-colors cursor-pointer"
                             aria-label="Decrease quantity"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
                           <span className="px-2.5 py-1 text-xs font-semibold font-mono text-charcoal min-w-[24px] text-center">
-                            {quantity}
+                            {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateQuantity(product.id, quantity + 1)}
+                            onClick={() => updateQuantity(product.id || item.productId, item.quantity + 1)}
                             disabled={!product.in_stock}
                             className="px-2 py-1 text-charcoal hover:bg-parchment text-xs transition-colors disabled:opacity-40 cursor-pointer"
                             aria-label="Increase quantity"
@@ -249,11 +254,11 @@ export function CartDrawer() {
                         {/* Price */}
                         <div className="text-right font-mono">
                           <p className="text-xs font-bold text-terracotta">
-                            Rs. {(product.price * quantity).toLocaleString()}
+                            Rs. {((item.price || product.price) * item.quantity).toLocaleString()}
                           </p>
-                          {quantity > 1 && (
+                          {item.quantity > 1 && (
                             <p className="text-[10px] text-muted">
-                              Rs. {product.price.toLocaleString()} each
+                              Rs. {(item.price || product.price).toLocaleString()} each
                             </p>
                           )}
                         </div>

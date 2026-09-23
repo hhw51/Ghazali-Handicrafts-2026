@@ -26,6 +26,12 @@ interface CartState {
     selectedDesign?: string,
     unitBreakdown?: UnitSelection[]
   ) => void;
+  updateUnitSelection: (
+    productId: string,
+    unitIndex: number,
+    field: 'color' | 'design',
+    value: string
+  ) => void;
   clearCart: () => void;
   toggleDrawer: () => void;
   openDrawer: () => void;
@@ -59,7 +65,7 @@ export const useCartStore = create<CartState>()(
 
         const currentItems = get().items;
         const existingIndex = currentItems.findIndex(
-          (item) => item.product.id === product.id
+          (item) => (item.productId || item.product?.id || item.id) === product.id
         );
 
         const initialColor =
@@ -69,15 +75,33 @@ export const useCartStore = create<CartState>()(
           selectedDesign ||
           (product.design ? product.design.split(',')[0].trim() : undefined);
 
+        const defaultBreakdown: UnitSelection[] = Array.from(
+          { length: quantity },
+          () => ({
+            color: initialColor,
+            design: initialDesign,
+          })
+        );
+
+        const incomingBreakdown =
+          unitBreakdown && unitBreakdown.length === quantity
+            ? unitBreakdown
+            : defaultBreakdown;
+
         if (existingIndex > -1) {
           const updatedItems = [...currentItems];
           const existing = updatedItems[existingIndex];
           const newQuantity = existing.quantity + quantity;
 
-          let nextBreakdown = unitBreakdown || existing.unitBreakdown;
-          if (unitBreakdown && existing.unitBreakdown) {
-            nextBreakdown = [...existing.unitBreakdown, ...unitBreakdown];
-          }
+          const existingBreakdown =
+            existing.unitBreakdown ||
+            existing.unitSelections ||
+            Array.from({ length: existing.quantity }, () => ({
+              color: existing.selectedColor || initialColor,
+              design: existing.selectedDesign || initialDesign,
+            }));
+
+          const nextBreakdown = [...existingBreakdown, ...incomingBreakdown];
 
           updatedItems[existingIndex] = {
             ...existing,
@@ -85,6 +109,7 @@ export const useCartStore = create<CartState>()(
             selectedColor: selectedColor || existing.selectedColor || initialColor,
             selectedDesign: selectedDesign || existing.selectedDesign || initialDesign,
             unitBreakdown: nextBreakdown,
+            unitSelections: nextBreakdown,
           };
           set({ items: updatedItems, isOpen: true });
         } else {
@@ -92,11 +117,23 @@ export const useCartStore = create<CartState>()(
             items: [
               ...currentItems,
               {
-                product,
+                id: product.id,
+                productId: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.images[0] || '/images/hero/craft-hero.png',
                 quantity,
+                availableColors: product.colors
+                  ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
+                  : [],
+                availableDesigns: product.design
+                  ? product.design.split(',').map((d) => d.trim()).filter(Boolean)
+                  : [],
+                unitSelections: incomingBreakdown,
+                unitBreakdown: incomingBreakdown,
+                product,
                 selectedColor: initialColor,
                 selectedDesign: initialDesign,
-                unitBreakdown,
               },
             ],
             isOpen: true,
@@ -107,7 +144,9 @@ export const useCartStore = create<CartState>()(
 
       removeItem: (productId: string) => {
         set({
-          items: get().items.filter((item) => item.product.id !== productId),
+          items: get().items.filter(
+            (item) => item.productId !== productId && item.product?.id !== productId && item.id !== productId
+          ),
         });
       },
 
@@ -117,19 +156,95 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
-        const updatedItems = get().items.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
-        );
+        const updatedItems = get().items.map((item) => {
+          if (item.productId === productId || item.product?.id === productId || item.id === productId) {
+            const oldQty = item.quantity;
+            let currentBreakdown = [
+              ...(item.unitBreakdown || item.unitSelections || []),
+            ];
+
+            const colorOpts = item.availableColors || (item.product?.colors ? item.product.colors.split(',').map(c => c.trim()).filter(Boolean) : []);
+            const designOpts = item.availableDesigns || (item.product?.design ? item.product.design.split(',').map(d => d.trim()).filter(Boolean) : []);
+            const defColor = item.selectedColor || colorOpts[0];
+            const defDesign = item.selectedDesign || designOpts[0];
+
+            if (quantity > oldQty) {
+              const diff = quantity - oldQty;
+              for (let i = 0; i < diff; i++) {
+                const prevUnit =
+                  currentBreakdown.length > 0
+                    ? currentBreakdown[currentBreakdown.length - 1]
+                    : null;
+                currentBreakdown.push({
+                  color: prevUnit?.color || defColor,
+                  design: prevUnit?.design || defDesign,
+                });
+              }
+            } else if (quantity < oldQty) {
+              currentBreakdown = currentBreakdown.slice(0, quantity);
+            }
+
+            return {
+              ...item,
+              quantity,
+              unitBreakdown: currentBreakdown,
+              unitSelections: currentBreakdown,
+            };
+          }
+          return item;
+        });
         set({ items: updatedItems });
       },
 
-      updateVariant: (productId: string, selectedColor?: string, selectedDesign?: string) => {
+      updateVariant: (
+        productId: string,
+        selectedColor?: string,
+        selectedDesign?: string
+      ) => {
         const updatedItems = get().items.map((item) => {
-          if (item.product.id === productId) {
+          if (item.productId === productId || item.product?.id === productId || item.id === productId) {
             return {
               ...item,
-              selectedColor: selectedColor !== undefined ? selectedColor : item.selectedColor,
-              selectedDesign: selectedDesign !== undefined ? selectedDesign : item.selectedDesign,
+              selectedColor:
+                selectedColor !== undefined ? selectedColor : item.selectedColor,
+              selectedDesign:
+                selectedDesign !== undefined ? selectedDesign : item.selectedDesign,
+            };
+          }
+          return item;
+        });
+        set({ items: updatedItems });
+      },
+
+      updateUnitSelection: (
+        productId: string,
+        unitIndex: number,
+        field: 'color' | 'design',
+        value: string
+      ) => {
+        const updatedItems = get().items.map((item) => {
+          if (item.productId === productId || item.product?.id === productId || item.id === productId) {
+            const colorOpts = item.availableColors || (item.product?.colors ? item.product.colors.split(',').map(c => c.trim()).filter(Boolean) : []);
+            const designOpts = item.availableDesigns || (item.product?.design ? item.product.design.split(',').map(d => d.trim()).filter(Boolean) : []);
+            const defColor = item.selectedColor || colorOpts[0];
+            const defDesign = item.selectedDesign || designOpts[0];
+
+            let breakdown = [
+              ...(item.unitBreakdown || item.unitSelections || []),
+            ];
+
+            while (breakdown.length < item.quantity) {
+              breakdown.push({ color: defColor, design: defDesign });
+            }
+
+            breakdown = breakdown.map((u, idx) =>
+              idx === unitIndex ? { ...u, [field]: value } : u
+            );
+
+            return {
+              ...item,
+              unitBreakdown: breakdown,
+              unitSelections: breakdown,
             };
           }
           return item;
@@ -155,7 +270,7 @@ export const useCartStore = create<CartState>()(
 
       getSubtotal: () => {
         return get().items.reduce(
-          (sum, item) => sum + item.product.price * item.quantity,
+          (sum, item) => sum + (item.price || item.product?.price || 0) * item.quantity,
           0
         );
       },

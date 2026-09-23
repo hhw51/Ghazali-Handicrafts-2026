@@ -75,8 +75,9 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     const payloadItems = items.map((i) => ({
-      productId: i.product.id,
+      productId: i.product?.id || i.productId,
       quantity: i.quantity,
+      unitSelections: i.unitSelections || i.unitBreakdown,
     }));
 
     const response = await createOrder({

@@ -34,33 +34,41 @@ export function CheckoutOrderSummary({
 
       {/* Item Breakdown List */}
       <div className="max-h-80 overflow-y-auto space-y-4 pr-1 divide-y divide-border/60">
-        {items.map(({ product, quantity }) => (
-          <div key={product.id} className="pt-3 first:pt-0 flex gap-3 items-center">
-            <div className="w-14 h-16 relative bg-parchment rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
-              <Image
-                src={product.images[0] || '/images/hero/craft-hero.png'}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
-            </div>
+        {items.map((item) => {
+          const prodName = item.name || item.product?.name || 'Craft Item';
+          const prodPrice = item.price || item.product?.price || 0;
+          const prodImg = item.image || item.product?.images?.[0] || '/images/hero/craft-hero.png';
+          const itemId = item.id || item.productId || item.product?.id || Math.random().toString();
+          const categoryName = item.product?.category?.name || 'Artisanal Craft';
 
-            <div className="flex-1 min-w-0">
-              <h4 className="font-serif text-xs font-semibold text-charcoal truncate">
-                {product.name}
-              </h4>
-              <p className="text-[11px] text-muted truncate">
-                {product.category?.name || 'Artisanal Craft'}
-              </p>
-              <div className="flex justify-between items-center mt-1 text-[11px]">
-                <span className="text-muted font-mono">Qty: {quantity}</span>
-                <span className="font-bold text-terracotta font-mono">
-                  Rs. {(product.price * quantity).toLocaleString()}
-                </span>
+          return (
+            <div key={itemId} className="pt-3 first:pt-0 flex gap-3 items-center">
+              <div className="w-14 h-16 relative bg-parchment rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
+                <Image
+                  src={prodImg}
+                  alt={prodName}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h4 className="font-serif text-xs font-semibold text-charcoal truncate">
+                  {prodName}
+                </h4>
+                <p className="text-[11px] text-muted truncate">
+                  {categoryName}
+                </p>
+                <div className="flex justify-between items-center mt-1 text-[11px]">
+                  <span className="text-muted font-mono">Qty: {item.quantity}</span>
+                  <span className="font-bold text-terracotta font-mono">
+                    Rs. {(prodPrice * item.quantity).toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Price Calculation Box */}

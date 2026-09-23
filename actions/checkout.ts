@@ -7,6 +7,8 @@ import { sendOrderNotifications } from '@/lib/notifications/order-notifier';
 interface CartItemPayload {
   productId: string;
   quantity: number;
+  unitSelections?: any[];
+  unitBreakdown?: any[];
 }
 
 interface CreateOrderPayload {
@@ -139,6 +141,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
         name: prod?.name || 'Craft Item',
         quantity: item.quantity,
         price: Number(prod?.price || 0),
+        unitSelections: item.unitSelections || item.unitBreakdown,
       };
     });
 
@@ -156,6 +159,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
         totalAmount,
         shippingAddress: customer.address,
         city: customer.city,
+        landmark: customer.landmark || undefined,
       });
     } catch (notifErr) {
       console.error('[Order Notification] Dispatch error:', notifErr);

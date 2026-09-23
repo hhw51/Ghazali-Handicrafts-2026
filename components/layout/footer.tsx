@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ShieldCheck, PackageCheck, Truck, MessageCircle, MapPin } from 'lucide-react';
+import { ShieldCheck, PackageCheck, Truck, MapPin } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 export function Footer() {
   return (
@@ -58,12 +59,12 @@ export function Footer() {
             </p>
             <div className="pt-2">
               <a
-                href="https://wa.me/923001234567?text=Hello%20Ghazali%20Handicrafts%2C%20I%20have%20an%20artisan%20query."
+                href="https://wa.me/923104755973?text=Hello%20Ghazali%20Handicrafts%2C%20I%20have%20an%20artisan%20query."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-lapis hover:bg-lapis/80 border border-brass/40 rounded-md text-xs font-medium text-parchment transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] rounded-md text-xs font-semibold text-white transition-colors shadow-xs"
               >
-                <MessageCircle className="w-4 h-4 text-brass" />
+                <WhatsAppIcon className="w-4 h-4 fill-current text-white" />
                 WhatsApp Artisan Concierge
               </a>
             </div>

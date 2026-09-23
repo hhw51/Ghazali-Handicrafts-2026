@@ -3,7 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderWithItems } from '@/types/order';
-import { CheckCircle2, ShieldCheck, MapPin, PackageCheck, MessageCircle, ArrowRight, Truck } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, MapPin, PackageCheck, ArrowRight, Truck } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,7 @@ export default async function OrderSuccessPage({ params }: PageProps) {
   }
 
   const whatsappMessage = `Hello Ghazali Handicrafts, I would like to inquire about my order status.\n*Order Ref:* #${order.id}\n*Customer Name:* ${order.customer_name}\n*City:* ${order.city}\n*Total Payable:* PKR ${order.total_amount}`;
-  const whatsappUrl = `https://wa.me/923001234567?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappUrl = `https://wa.me/923104755973?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <div className="py-12 pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -77,9 +78,9 @@ export default async function OrderSuccessPage({ params }: PageProps) {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-parchment font-medium text-xs rounded-md shadow-craft-sm transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium text-xs rounded-md shadow-craft-sm transition-colors flex items-center gap-2"
           >
-            <MessageCircle className="w-4 h-4 text-emerald-200" /> Track & Inquire via WhatsApp
+            <WhatsAppIcon className="w-4 h-4 fill-current text-white" /> Track & Inquire via WhatsApp
           </a>
 
           <Link

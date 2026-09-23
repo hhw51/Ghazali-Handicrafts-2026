@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderWithItems, OrderStatus } from '@/types/order';
 import { OrderStatusSelect } from '@/components/admin/order-status-select';
-import { ShoppingCart, MessageCircle, ExternalLink, Calendar, MapPin, Truck } from 'lucide-react';
+import { ShoppingCart, ExternalLink, Calendar, MapPin, Truck } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -188,9 +189,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                           href={waUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-parchment font-medium text-[11px] rounded-md transition-colors shadow-craft-sm"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium text-[11px] rounded-md transition-colors shadow-craft-sm"
                         >
-                          <MessageCircle className="w-3.5 h-3.5 text-emerald-200" /> WhatsApp Customer
+                          <WhatsAppIcon className="w-3.5 h-3.5 fill-current text-white" /> WhatsApp Customer
                         </a>
                       </td>
                     </tr>

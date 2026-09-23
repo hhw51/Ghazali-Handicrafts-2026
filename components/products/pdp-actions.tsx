@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Product } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
-import { ShoppingBag, MessageCircle, Check } from 'lucide-react';
+import { ShoppingBag, Check } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 interface PdpActionsProps {
   product: Product;
@@ -26,7 +27,7 @@ export function PdpActions({ product }: PdpActionsProps) {
 
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const whatsappMsg = `Hello Ghazali Handicrafts, I would like to inquire about the item: *${product.name}* (Price: PKR ${product.price}). Link: ${currentUrl}`;
-  const whatsappUrl = `https://wa.me/923001234567?text=${encodeURIComponent(whatsappMsg)}`;
+  const whatsappUrl = `https://wa.me/923104755973?text=${encodeURIComponent(whatsappMsg)}`;
 
   return (
     <div className="space-y-3 pt-2">
@@ -60,7 +61,7 @@ export function PdpActions({ product }: PdpActionsProps) {
         rel="noopener noreferrer"
         className="w-full py-3 px-6 bg-sandstone hover:bg-chiseled text-charcoal border border-border rounded-md font-medium text-sm flex items-center justify-center gap-2 transition-colors"
       >
-        <MessageCircle className="w-4 h-4 text-emerald-600" /> Inquire via WhatsApp Concierge
+        <WhatsAppIcon className="w-4 h-4 fill-current text-[#25D366]" /> Inquire via WhatsApp Concierge
       </a>
     </div>
   );

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { UnitSelection } from '@/types/order';
-import { ShoppingBag, MessageCircle, Minus, Plus, Check, Share2, Layers } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { ShoppingBag, Minus, Plus, Check, Share2, Layers } from 'lucide-react';
 
 interface ProductVariantPickerProps {
   product: Product;
@@ -348,9 +349,9 @@ export function ProductVariantPicker({ product }: ProductVariantPickerProps) {
           <button
             type="button"
             onClick={handleWhatsAppOrder}
-            className="py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-parchment font-semibold text-xs rounded-xl shadow-craft-sm transition-all flex items-center justify-center gap-2 active:scale-[0.99] cursor-pointer"
+            className="py-3.5 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold text-xs rounded-xl shadow-craft-sm transition-all flex items-center justify-center gap-2 active:scale-[0.99] cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4 fill-parchment shrink-0" />
+            <WhatsAppIcon className="w-4 h-4 fill-current text-white shrink-0" />
             <span className="truncate">Order via WhatsApp</span>
           </button>
         </div>

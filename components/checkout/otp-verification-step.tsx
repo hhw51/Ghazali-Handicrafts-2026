@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { sendOrderOtp, verifyOrderOtp } from '@/actions/otp';
 import { Smartphone, CheckCircle2, ShieldCheck, RefreshCw, Sparkles, AlertCircle, MessageSquare } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 interface OtpVerificationStepProps {
   phone: string;
@@ -161,9 +162,7 @@ export function OtpVerificationStep({
                     : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-transparent'
                 }`}
               >
-                <svg className="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.461c-1.926 0-3.725-.515-5.279-1.413l-.378-.222-3.923 1.028 1.047-3.824-.247-.393c-.987-1.572-1.509-3.393-1.509-5.263 0-5.32 4.329-9.65 9.65-9.65 2.578 0 5.001 1.004 6.822 2.827s2.825 4.246 2.824 6.824c-.002 5.322-4.331 9.652-9.651 9.652m0-21.343c-6.443 0-11.687 5.244-11.687 11.687 0 2.062.538 4.07 1.56 5.836l-1.656 6.049 6.189-1.623c1.706.93 3.639 1.423 5.594 1.424h.005c6.442 0 11.686-5.245 11.688-11.688 0-3.122-1.216-6.058-3.427-8.27-2.211-2.212-5.147-3.427-8.266-3.427" />
-                </svg>
+                <WhatsAppIcon className="w-4 h-4 fill-current text-emerald-400 shrink-0" />
                 <span>WhatsApp (Instant)</span>
               </button>
 

@@ -1,95 +1,103 @@
 import { sendBrevoOrderEmail } from '@/lib/mail/brevo';
 
-export interface OrderSummary {
-  orderNumber: string;
-  customerName: string;
-  phone: string;
-  email?: string;
-  city: string;
-  shippingAddress: string;
-  totalAmount: number;
-  items: Array<{ name: string; quantity: number; price: number }>;
+function formatItemsList(items: any[]): string {
+  return items.map((item) => {
+    let breakdownStr = '';
+    const unitSelections = item.unitSelections || item.unitBreakdown;
+    if (unitSelections && unitSelections.length > 0) {
+      breakdownStr = '\n   ' + unitSelections.map((u: any, idx: number) => {
+        const parts = [];
+        if (u.color) parts.push(`Color: ${u.color}`);
+        if (u.design) parts.push(`Design: ${u.design}`);
+        return `   • Item ${idx + 1}: ${parts.join(', ') || 'Standard'}`;
+      }).join('\n');
+    }
+    return `• ${item.quantity}x ${item.name} — Rs. ${(item.price * item.quantity).toLocaleString()}${breakdownStr}`;
+  }).join('\n\n');
 }
 
-export type OrderNotificationPayload = OrderSummary;
+export async function sendOrderConfirmationNotifications(order: any) {
+  const itemsBreakdown = formatItemsList(order.items || []);
+  const totalStr = `Rs. ${(order.totalAmount || 0).toLocaleString()}`;
 
-export async function sendOrderConfirmationNotifications(order: OrderSummary) {
-  // Normalize phone to pure digits for Baileys JID (e.g. 923219981625)
-  // and E.164 with + for SMS (e.g. +923219981625)
-  let cleanDigits = order.phone.replace(/\D/g, '');
-  if (cleanDigits.startsWith('0')) cleanDigits = '92' + cleanDigits.slice(1);
-  if (!cleanDigits.startsWith('92')) cleanDigits = '92' + cleanDigits;
+  // 1. CUSTOMER NOTIFICATION TEMPLATES
+  const customerWhatsApp = 
+    `🏛️ *Ghazali Handicrafts — Order Confirmed!*\n\n` +
+    `Thank you for ordering with us. Your parcel is being prepared.\n\n` +
+    `*Order #:* ${order.orderNumber}\n` +
+    `*Customer:* ${order.customerName}\n` +
+    `*Delivery City:* ${order.city}\n` +
+    `*Address:* ${order.shippingAddress}${order.landmark ? ` (Near: ${order.landmark})` : ''}\n` +
+    `*Total (COD):* ${totalStr}\n\n` +
+    `*Ordered Items & Selected Variants:*\n${itemsBreakdown}\n\n` +
+    `We will notify you once dispatched. For any inquiries, reply directly to this WhatsApp!`;
 
-  const plusPhone = `+${cleanDigits}`;
+  const customerSMS = 
+    `Ghazali Handicrafts: Order #${order.orderNumber} confirmed! Total: ${totalStr} (COD) to ${order.city}. Items: ${(order.items || []).length} product(s). Track via WhatsApp +923104755973.`;
 
-  const itemsList = order.items
-    .map((item) => `• ${item.quantity}x ${item.name} (Rs. ${(item.price * item.quantity).toLocaleString()})`)
-    .join('\n');
+  // 2. ADMIN NOTIFICATION TEMPLATES (Sent to +923104755973)
+  const adminAlertWhatsApp = 
+    `🚨 *NEW ORDER RECEIVED — GHAZALI STORE* 🚨\n\n` +
+    `*Order #:* ${order.orderNumber}\n` +
+    `*Customer Name:* ${order.customerName}\n` +
+    `*Verified Mobile:* ${order.phone}\n` +
+    `*Email:* ${order.email || 'N/A'}\n` +
+    `*Delivery City:* ${order.city}\n` +
+    `*Street Address:* ${order.shippingAddress}\n` +
+    `*Landmark:* ${order.landmark || 'N/A'}\n` +
+    `*Total Amount:* ${totalStr} (Cash on Delivery)\n\n` +
+    `*Items Breakdown:*\n${itemsBreakdown}`;
 
-  // --- CHANNEL 1: WhatsApp (Baileys Tunnel / Local Worker) ---
+  const adminAlertSMS = 
+    `New Order #${order.orderNumber}! Customer: ${order.customerName} (${order.phone}), ${order.city}. Total: ${totalStr}. Address: ${order.shippingAddress}. Check Admin Panel!`;
+
+  const adminPhone = '+923104755973';
+
+  // --- DISPATCH CALLS ---
+  // Channel: WhatsApp (Baileys Tunnel/Worker)
   if (process.env.WHATSAPP_WORKER_URL) {
-    const waMessage =
-      `🏛️ *Ghazali Handicrafts — Order Confirmed!*\n\n` +
-      `*Order #:* ${order.orderNumber}\n` +
-      `*Customer:* ${order.customerName}\n` +
-      `*Delivery City:* ${order.city}\n` +
-      `*Address:* ${order.shippingAddress}\n` +
-      `*Total (COD):* Rs. ${order.totalAmount.toLocaleString()}\n\n` +
-      `*Items Ordered:*\n${itemsList}\n\n` +
-      `Your parcel is being packed with fragile-safe artisanal packaging. For updates or changes, reply directly to this chat!`;
+    // A. Send to Customer
+    await fetch(process.env.WHATSAPP_WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: order.phone, message: customerWhatsApp }),
+    }).catch(e => console.error('[WhatsApp Customer Error]:', e));
 
-    try {
-      console.log(`[Notification] Dispatching WhatsApp to ${plusPhone}...`);
-      const res = await fetch(process.env.WHATSAPP_WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: plusPhone, message: waMessage }),
-      });
-      console.log(`[Notification] WhatsApp response status: ${res.status}`);
-    } catch (err) {
-      console.error('[Notification] WhatsApp dispatch failed:', err);
-    }
+    // B. Send to Shop Admin
+    await fetch(process.env.WHATSAPP_WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: adminPhone, message: adminAlertWhatsApp }),
+    }).catch(e => console.error('[WhatsApp Admin Error]:', e));
   }
 
-  // --- CHANNEL 2: SMS Gateway (Cloud Mode via Android) ---
-  const smsUrl = process.env.ANDROID_SMS_GATEWAY_URL;
-  const smsUser = process.env.ANDROID_SMS_USER || process.env.ANDROID_SMS_GATEWAY_USER;
-  const smsPass = process.env.ANDROID_SMS_PASS || process.env.ANDROID_SMS_GATEWAY_PASSWORD;
+  // Channel: Android SMS Gateway
+  if (process.env.ANDROID_SMS_GATEWAY_URL && process.env.ANDROID_SMS_USER && process.env.ANDROID_SMS_PASS) {
+    const auth = Buffer.from(`${process.env.ANDROID_SMS_USER}:${process.env.ANDROID_SMS_PASS}`).toString('base64');
 
-  if (smsUrl && smsUser && smsPass) {
-    const smsMessage = `Ghazali Handicrafts: Order #${order.orderNumber} confirmed! Total: Rs. ${order.totalAmount.toLocaleString()} (COD) to ${order.city}. We will dispatch your items shortly.`;
+    // A. SMS to Customer
+    await fetch(process.env.ANDROID_SMS_GATEWAY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Basic ${auth}` },
+      body: JSON.stringify({ phoneNumbers: [order.phone], textMessage: { text: customerSMS } }),
+    }).catch(e => console.error('[SMS Customer Error]:', e));
 
-    try {
-      const auth = Buffer.from(`${smsUser}:${smsPass}`).toString('base64');
-
-      console.log(`[Notification] Dispatching SMS to ${plusPhone}...`);
-      const res = await fetch(smsUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Basic ${auth}`,
-        },
-        body: JSON.stringify({
-          phoneNumbers: [plusPhone],
-          textMessage: { text: smsMessage },
-        }),
-      });
-      console.log(`[Notification] SMS response status: ${res.status}`);
-    } catch (err) {
-      console.error('[Notification] SMS dispatch failed:', err);
-    }
+    // B. SMS to Shop Admin
+    await fetch(process.env.ANDROID_SMS_GATEWAY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Basic ${auth}` },
+      body: JSON.stringify({ phoneNumbers: [adminPhone], textMessage: { text: adminAlertSMS } }),
+    }).catch(e => console.error('[SMS Admin Error]:', e));
   }
 
-  // --- CHANNEL 3: Brevo Mailer (Scaffolded for future use) ---
+  // Channel: Brevo Mailer
   if (process.env.BREVO_API_KEY && order.email) {
     try {
       await sendBrevoOrderEmail(order);
-      console.log(`[Notification] Brevo email confirmation dispatched to ${order.email}`);
-    } catch (emailErr) {
-      console.error('[Notification] Brevo email dispatch failed:', emailErr);
+    } catch (e) {
+      console.error('[Brevo Email Error]:', e);
     }
   }
 }
 
-// Backward compatibility export
 export const sendOrderNotifications = sendOrderConfirmationNotifications;
