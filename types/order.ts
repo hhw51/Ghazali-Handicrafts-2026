@@ -39,11 +39,17 @@ export interface OrderItem {
   product?: Product;
 }
 
+export interface UnitSelection {
+  color?: string;
+  design?: string;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
   selectedColor?: string;
   selectedDesign?: string;
+  unitBreakdown?: UnitSelection[];
 }
 
 export interface CheckoutFormData {

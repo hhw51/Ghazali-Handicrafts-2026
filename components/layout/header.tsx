@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { ShoppingBag, Search, Menu, X, ShieldCheck, Truck, Sparkles } from 'lucide-react';
 import { useCartStore } from '@/store/cart-store';
 
+import { FestiveBanner } from '@/components/layout/festive-banner';
+
 export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,24 +38,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full transition-all duration-300">
-      {/* Top Heritage Announcement Strip */}
-      <div className="bg-lapis text-parchment py-1.5 px-4 text-xs font-medium tracking-wide">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-center sm:text-left">
-          <div className="hidden md:flex items-center gap-4 text-[11px] opacity-90">
-            <span className="flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 text-brass" /> 100% Cash on Delivery Nationwide
-            </span>
-            <span className="text-brass/40">|</span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-brass" /> Fragile Crate Protection Guarantee
-            </span>
-          </div>
-          <div className="mx-auto md:mx-0 flex items-center gap-1.5 text-brass font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-brass animate-pulse" />
-            <span>Free Shipping on Orders Above Rs. 10,000 PKR</span>
-          </div>
-        </div>
-      </div>
+      {/* Top Heritage & Automated Festive Announcement Strip */}
+      <FestiveBanner />
 
       {/* Main Navigation Bar */}
       <nav

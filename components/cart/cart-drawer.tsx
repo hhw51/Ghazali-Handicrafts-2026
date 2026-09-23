@@ -114,7 +114,7 @@ export function CartDrawer() {
                 </Link>
               </div>
             ) : (
-              items.map(({ product, quantity, selectedColor, selectedDesign }) => {
+              items.map(({ product, quantity, selectedColor, selectedDesign, unitBreakdown }) => {
                 const colorOptions = product.colors
                   ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
                   : [];
@@ -163,46 +163,62 @@ export function CartDrawer() {
                       </div>
 
                       {/* Dynamic Inline Variant Dropdowns & Size Badge */}
-                      {(colorOptions.length > 0 || designOptions.length > 0 || sizeText) && (
-                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px]">
-                          {colorOptions.length > 0 && (
-                            <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
-                              <span className="text-muted font-medium">Color:</span>
-                              <select
-                                value={currentColor}
-                                onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
-                                className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
-                              >
-                                {colorOptions.map((c) => (
-                                  <option key={c} value={c}>
-                                    {c}
-                                  </option>
-                                ))}
-                              </select>
+                      {(colorOptions.length > 0 || designOptions.length > 0 || sizeText || (unitBreakdown && unitBreakdown.length > 0)) && (
+                        <div className="mt-1.5 space-y-1 text-[11px]">
+                          {unitBreakdown && unitBreakdown.length > 1 ? (
+                            <div className="bg-sandstone p-2 rounded border border-border space-y-1 font-mono text-[10px]">
+                              <span className="font-sans font-bold text-charcoal block text-[11px]">Itemized Unit Breakdown:</span>
+                              {unitBreakdown.map((ub, idx) => (
+                                <div key={idx} className="flex justify-between text-muted">
+                                  <span>Item {idx + 1}:</span>
+                                  <span className="font-sans text-charcoal font-medium">
+                                    {[ub.color, ub.design].filter(Boolean).join(' / ') || 'Default'}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
-                          )}
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-2">
+                              {colorOptions.length > 0 && (
+                                <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
+                                  <span className="text-muted font-medium">Color:</span>
+                                  <select
+                                    value={currentColor}
+                                    onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
+                                    className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
+                                  >
+                                    {colorOptions.map((c) => (
+                                      <option key={c} value={c}>
+                                        {c}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )}
 
-                          {designOptions.length > 0 && (
-                            <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
-                              <span className="text-muted font-medium">Design:</span>
-                              <select
-                                value={currentDesign}
-                                onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
-                                className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
-                              >
-                                {designOptions.map((d) => (
-                                  <option key={d} value={d}>
-                                    {d}
-                                  </option>
-                                ))}
-                              </select>
+                              {designOptions.length > 0 && (
+                                <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
+                                  <span className="text-muted font-medium">Design:</span>
+                                  <select
+                                    value={currentDesign}
+                                    onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
+                                    className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
+                                  >
+                                    {designOptions.map((d) => (
+                                      <option key={d} value={d}>
+                                        {d}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )}
+
+                              {sizeText && (
+                                <span className="text-[11px] text-muted bg-sandstone px-1.5 py-0.5 rounded border border-border">
+                                  Size: {sizeText}
+                                </span>
+                              )}
                             </div>
-                          )}
-
-                          {sizeText && (
-                            <span className="text-[11px] text-muted bg-sandstone px-1.5 py-0.5 rounded border border-border">
-                              Size: {sizeText}
-                            </span>
                           )}
                         </div>
                       )}

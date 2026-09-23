@@ -17,6 +17,7 @@ export interface SiteSettings {
   story_image_after: string;
   announcement_banner: string;
   announcement_active: boolean;
+  active_theme_mode?: string;
   updated_at?: string;
 }
 
@@ -36,6 +37,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   story_image_after: '/images/hero/craft-hero.png',
   announcement_banner: 'Free fragile-safe delivery across Pakistan on orders over Rs. 5,000',
   announcement_active: true,
+  active_theme_mode: 'auto',
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -68,6 +70,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       story_image_after: data.story_image_after || DEFAULT_SITE_SETTINGS.story_image_after,
       announcement_banner: data.announcement_banner ?? DEFAULT_SITE_SETTINGS.announcement_banner,
       announcement_active: data.announcement_active ?? DEFAULT_SITE_SETTINGS.announcement_active,
+      active_theme_mode: data.active_theme_mode || DEFAULT_SITE_SETTINGS.active_theme_mode,
     };
   } catch (err) {
     console.error('getSiteSettings exception:', err);

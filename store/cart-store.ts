@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product } from '@/types/product';
-import { CartItem } from '@/types/order';
+import { CartItem, UnitSelection } from '@/types/order';
 
 const FREE_SHIPPING_THRESHOLD = 10000; // 10,000 PKR
 const STANDARD_SHIPPING_FEE = 350;     // 350 PKR
@@ -15,14 +15,16 @@ interface CartState {
     product: Product,
     quantity?: number,
     selectedColor?: string,
-    selectedDesign?: string
+    selectedDesign?: string,
+    unitBreakdown?: UnitSelection[]
   ) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   updateVariant: (
     productId: string,
     selectedColor?: string,
-    selectedDesign?: string
+    selectedDesign?: string,
+    unitBreakdown?: UnitSelection[]
   ) => void;
   clearCart: () => void;
   toggleDrawer: () => void;
@@ -48,7 +50,8 @@ export const useCartStore = create<CartState>()(
         product: Product,
         quantity = 1,
         selectedColor?: string,
-        selectedDesign?: string
+        selectedDesign?: string,
+        unitBreakdown?: UnitSelection[]
       ) => {
         if (!product.in_stock) {
           return false;
@@ -69,11 +72,19 @@ export const useCartStore = create<CartState>()(
         if (existingIndex > -1) {
           const updatedItems = [...currentItems];
           const existing = updatedItems[existingIndex];
+          const newQuantity = existing.quantity + quantity;
+
+          let nextBreakdown = unitBreakdown || existing.unitBreakdown;
+          if (unitBreakdown && existing.unitBreakdown) {
+            nextBreakdown = [...existing.unitBreakdown, ...unitBreakdown];
+          }
+
           updatedItems[existingIndex] = {
             ...existing,
-            quantity: existing.quantity + quantity,
+            quantity: newQuantity,
             selectedColor: selectedColor || existing.selectedColor || initialColor,
             selectedDesign: selectedDesign || existing.selectedDesign || initialDesign,
+            unitBreakdown: nextBreakdown,
           };
           set({ items: updatedItems, isOpen: true });
         } else {
@@ -85,6 +96,7 @@ export const useCartStore = create<CartState>()(
                 quantity,
                 selectedColor: initialColor,
                 selectedDesign: initialDesign,
+                unitBreakdown,
               },
             ],
             isOpen: true,

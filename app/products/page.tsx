@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { ProductSortSelect } from '@/components/products/product-sort-select';
+import { ProductPriceFilter } from '@/components/products/product-price-filter';
 import { StorefrontCatalogWrapper } from '@/components/products/storefront-catalog-wrapper';
 import { Product, Category } from '@/types/product';
 import Link from 'next/link';
@@ -163,6 +164,14 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           ))}
         </div>
 
+        {/* Price Range Filter & Presets */}
+        <div className="py-4 border-b border-border">
+          <ProductPriceFilter
+            currentMinPrice={resolvedParams.minPrice}
+            currentMaxPrice={resolvedParams.maxPrice}
+          />
+        </div>
+
         {/* Filter Controls & Search Bar */}
         <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-border">
           {/* Active Search & Filter Count Indicator */}
@@ -170,6 +179,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             <form action="/products" method="GET" className="flex items-center flex-1 md:w-80">
               {selectedCategorySlug && (
                 <input type="hidden" name="category" value={selectedCategorySlug} />
+              )}
+              {resolvedParams.minPrice && (
+                <input type="hidden" name="minPrice" value={resolvedParams.minPrice} />
+              )}
+              {resolvedParams.maxPrice && (
+                <input type="hidden" name="maxPrice" value={resolvedParams.maxPrice} />
               )}
               <input
                 type="text"
@@ -186,7 +201,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               </button>
             </form>
 
-            {(searchQuery || selectedCategorySlug || inStockOnly) && (
+            {(searchQuery || selectedCategorySlug || inStockOnly || resolvedParams.minPrice || resolvedParams.maxPrice) && (
               <Link
                 href="/products"
                 className="text-xs text-terracotta hover:underline font-medium flex items-center gap-1 shrink-0"

@@ -96,7 +96,7 @@ export default function CartPage() {
             </div>
 
             <div className="bg-sandstone rounded-xl border border-border overflow-hidden divide-y divide-border">
-              {items.map(({ product, quantity, selectedColor, selectedDesign }) => {
+              {items.map(({ product, quantity, selectedColor, selectedDesign, unitBreakdown }) => {
                 const colorOptions = product.colors
                   ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
                   : [];
@@ -136,46 +136,62 @@ export default function CartPage() {
                         </Link>
 
                         {/* Dynamic Inline Variant Dropdowns */}
-                        {(colorOptions.length > 0 || designOptions.length > 0 || sizeText) && (
-                          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
-                            {colorOptions.length > 0 && (
-                              <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
-                                <span className="text-muted font-medium">Color:</span>
-                                <select
-                                  value={currentColor}
-                                  onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
-                                  className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
-                                >
-                                  {colorOptions.map((c) => (
-                                    <option key={c} value={c}>
-                                      {c}
-                                    </option>
-                                  ))}
-                                </select>
+                        {(colorOptions.length > 0 || designOptions.length > 0 || sizeText || (unitBreakdown && unitBreakdown.length > 0)) && (
+                          <div className="pt-1 text-xs space-y-1">
+                            {unitBreakdown && unitBreakdown.length > 1 ? (
+                              <div className="bg-parchment p-2.5 rounded-md border border-border space-y-1 font-mono text-[11px]">
+                                <span className="font-sans font-bold text-charcoal block text-xs">Itemized Unit Breakdown:</span>
+                                {unitBreakdown.map((ub, idx) => (
+                                  <div key={idx} className="flex justify-between text-muted">
+                                    <span>Item {idx + 1}:</span>
+                                    <span className="font-sans text-charcoal font-medium">
+                                      {[ub.color, ub.design].filter(Boolean).join(' / ') || 'Default'}
+                                    </span>
+                                  </div>
+                                ))}
                               </div>
-                            )}
+                            ) : (
+                              <div className="flex flex-wrap items-center gap-3">
+                                {colorOptions.length > 0 && (
+                                  <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
+                                    <span className="text-muted font-medium">Color:</span>
+                                    <select
+                                      value={currentColor}
+                                      onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
+                                      className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
+                                    >
+                                      {colorOptions.map((c) => (
+                                        <option key={c} value={c}>
+                                          {c}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
 
-                            {designOptions.length > 0 && (
-                              <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
-                                <span className="text-muted font-medium">Design:</span>
-                                <select
-                                  value={currentDesign}
-                                  onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
-                                  className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
-                                >
-                                  {designOptions.map((d) => (
-                                    <option key={d} value={d}>
-                                      {d}
-                                    </option>
-                                  ))}
-                                </select>
+                                {designOptions.length > 0 && (
+                                  <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
+                                    <span className="text-muted font-medium">Design:</span>
+                                    <select
+                                      value={currentDesign}
+                                      onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
+                                      className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
+                                    >
+                                      {designOptions.map((d) => (
+                                        <option key={d} value={d}>
+                                          {d}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+
+                                {sizeText && (
+                                  <span className="text-muted bg-parchment px-2 py-1 rounded-md border border-border text-xs">
+                                    Size: {sizeText}
+                                  </span>
+                                )}
                               </div>
-                            )}
-
-                            {sizeText && (
-                              <span className="text-muted bg-parchment px-2 py-1 rounded-md border border-border text-xs">
-                                Size: {sizeText}
-                              </span>
                             )}
                           </div>
                         )}
