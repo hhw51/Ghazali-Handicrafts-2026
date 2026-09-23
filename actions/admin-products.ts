@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { SheetProductRow, slugify } from '@/lib/validations/product';
 import { extractDriveFolderImages, isGoogleDriveLink } from '@/lib/storage/google-drive';
+import { fetchAndUploadDriveFolderImages } from '@/lib/services/google-drive';
 import { parseExcelBuffer, parseGoogleSheetUrl, ParsedRowResult } from '@/lib/parsers/excel';
 import { revalidatePath } from 'next/cache';
 
@@ -191,9 +192,13 @@ export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
       // Check if image entry is a Google Drive folder link
       const firstImg = row.images[0] || '';
       if (isGoogleDriveLink(firstImg)) {
-        const driveRes = await extractDriveFolderImages(firstImg, prodSlug);
-        if (driveRes.success && driveRes.urls.length > 0) {
-          finalImages = driveRes.urls;
+        try {
+          const driveUrls = await fetchAndUploadDriveFolderImages(firstImg, prodSlug, supabase);
+          if (driveUrls.length > 0) {
+            finalImages = driveUrls;
+          }
+        } catch (dErr) {
+          console.warn(`[Ingestion Warning] Drive extraction for ${prodSlug}:`, dErr);
         }
       }
 
