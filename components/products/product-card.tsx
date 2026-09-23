@@ -22,8 +22,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const tagsList = Array.isArray(product.tags)
     ? product.tags
     : typeof product.tags === 'string'
-    ? (product.tags as string).split(',').map((t) => t.trim())
-    : [];
+      ? (product.tags as string).split(',').map((t) => t.trim())
+      : [];
 
   // Extract provenance region tag from tags or default
   const regionTag =
@@ -62,37 +62,15 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {/* Badges Overlays */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-          {/* Provenance Region Badge */}
-          <span className="px-2.5 py-1 text-[10px] font-sans font-semibold tracking-wider uppercase bg-lapis/90 text-parchment rounded-full backdrop-blur-md shadow-sm">
-            {regionTag}
-          </span>
-        </div>
-
-        <div className="absolute top-3 right-3 z-10">
-          {/* Stock Badge */}
-          {product.in_stock ? (
-            <span className="px-2 py-0.5 text-[10px] font-medium bg-emerald-950/80 text-emerald-200 border border-emerald-500/30 rounded-full backdrop-blur-md">
-              In Stock
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 text-[10px] font-medium bg-terracotta/90 text-parchment rounded-full">
-              Sold Out
-            </span>
-          )}
-        </div>
-
         {/* Quick Add Hover Overlay Button */}
         {product.in_stock && (
           <div className="absolute inset-x-3 bottom-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
             <button
               onClick={handleQuickAdd}
-              className={`w-full py-2.5 px-4 text-xs font-semibold rounded-md flex items-center justify-center gap-2 transition-all duration-200 shadow-craft-md cursor-pointer ${
-                added
+              className={`w-full py-2.5 px-4 text-xs font-semibold rounded-md flex items-center justify-center gap-2 transition-all duration-200 shadow-craft-md cursor-pointer ${added
                   ? 'bg-emerald-800 text-parchment'
                   : 'bg-lapis text-parchment hover:bg-lapis/90'
-              }`}
+                }`}
             >
               {added ? (
                 <>
