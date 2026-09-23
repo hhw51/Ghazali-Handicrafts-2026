@@ -1,9 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { ProductCard } from '@/components/products/product-card';
 import { ProductSortSelect } from '@/components/products/product-sort-select';
+import { StorefrontCatalogWrapper } from '@/components/products/storefront-catalog-wrapper';
 import { Product, Category } from '@/types/product';
 import Link from 'next/link';
-import { Search, SlidersHorizontal, Sparkles, Filter, RefreshCw } from 'lucide-react';
+import { Search, Sparkles, Filter, RefreshCw } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +15,8 @@ interface PageProps {
     maxPrice?: string;
     inStock?: string;
     sort?: string;
+    page?: string;
+    limit?: string;
   }>;
 }
 
@@ -25,18 +27,23 @@ async function getProductsAndCategories(params: {
   maxPrice?: string;
   inStock?: string;
   sort?: string;
+  page?: number;
+  limit?: number;
 }) {
   try {
     const supabase = createAdminClient();
+    const page = params.page || 1;
+    const limit = params.limit || 25;
 
     // 1. Fetch categories
     const { data: categories } = await supabase.from('categories').select('*').order('name');
 
-    // 2. Build product query (LEFT JOIN on categories)
-    let query = supabase.from('products').select('*, category:categories(*)');
+    // 2. Build product query
+    let query = supabase
+      .from('products')
+      .select('*, category:categories(*)', { count: 'exact' });
 
     if (params.category) {
-      // Find category id by slug
       const cat = categories?.find((c) => c.slug === params.category);
       if (cat) {
         query = query.eq('category_id', cat.id);
@@ -71,29 +78,39 @@ async function getProductsAndCategories(params: {
       query = query.order('created_at', { ascending: false });
     }
 
-    const { data: products, error } = await query;
+    // Pagination Range
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+
+    const { data: products, count, error } = await query;
 
     if (error) {
       console.error('Error fetching catalog:', error);
-      return { products: [], categories: categories || [] };
+      return { products: [], categories: categories || [], totalCount: 0 };
     }
 
-    const fetchedProducts = (products as Product[]) || [];
-    console.log('[Storefront Catalog] Loaded products count:', fetchedProducts.length);
-
     return {
-      products: fetchedProducts,
+      products: (products as Product[]) || [],
       categories: (categories as Category[]) || [],
+      totalCount: count || 0,
     };
   } catch (err) {
     console.error('Database connection error:', err);
-    return { products: [], categories: [] };
+    return { products: [], categories: [], totalCount: 0 };
   }
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
-  const { products, categories } = await getProductsAndCategories(resolvedParams);
+  const page = parseInt(resolvedParams.page || '1', 10) || 1;
+  const limit = parseInt(resolvedParams.limit || '25', 10) || 25;
+
+  const { products, categories, totalCount } = await getProductsAndCategories({
+    ...resolvedParams,
+    page,
+    limit,
+  });
 
   const selectedCategorySlug = resolvedParams.category || '';
   const searchQuery = resolvedParams.search || '';
@@ -129,7 +146,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                 : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-border'
             }`}
           >
-            All Collections ({products.length})
+            All Collections ({totalCount})
           </Link>
           {categories.map((cat) => (
             <Link
@@ -206,7 +223,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        {/* 4-Column Responsive Product Catalog Grid */}
+        {/* Responsive Catalog Grid with Mobile Density Toggle & Pagination */}
         {products.length === 0 ? (
           <div className="py-20 text-center space-y-4">
             <div className="w-16 h-16 bg-sandstone rounded-full flex items-center justify-center mx-auto border border-border text-muted">
@@ -224,11 +241,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <StorefrontCatalogWrapper
+            products={products}
+            totalCount={totalCount}
+            currentPage={page}
+            pageSize={limit}
+          />
         )}
       </div>
     </div>

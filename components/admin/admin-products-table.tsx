@@ -3,17 +3,30 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Product } from '@/types/product';
 import { EditProductModal } from './edit-product-modal';
 import { StockToggle } from './stock-toggle';
-import { bulkUpdateStock, bulkDeleteProducts, deleteProduct } from '@/actions/admin-products';
-import { Pencil, Trash2, CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, ShieldAlert } from 'lucide-react';
+import { bulkUpdateStock, bulkDeleteProducts, deleteProduct, toggleProductFeatured } from '@/actions/admin-products';
+import { Pencil, Trash2, CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, ShieldAlert, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AdminProductsTableProps {
   products: Product[];
+  totalCount?: number;
+  currentPage?: number;
+  pageSize?: number;
 }
 
-export function AdminProductsTable({ products: initialProducts }: AdminProductsTableProps) {
+export function AdminProductsTable({
+  products: initialProducts,
+  totalCount = initialProducts.length,
+  currentPage = 1,
+  pageSize = 25,
+}: AdminProductsTableProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const [productList, setProductList] = useState<Product[]>(initialProducts);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -26,6 +39,34 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
   if (initialProducts !== productList && !loadingAction && selectedIds.size === 0) {
     setProductList(initialProducts);
   }
+
+  const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
+    // Optimistic UI update
+    setProductList((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, is_featured: !currentFeatured } : p))
+    );
+
+    const res = await toggleProductFeatured(id, currentFeatured);
+    if (res.success) {
+      showToastNotification(
+        `✓ Product ${!currentFeatured ? 'highlighted on Homepage Showcase' : 'removed from Showcase'}.`
+      );
+    } else {
+      // Revert on error
+      setProductList((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, is_featured: currentFeatured } : p))
+      );
+      showToastNotification(res.error || 'Failed to update feature status.', 'error');
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(newPage));
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
   const allSelected = productList.length > 0 && selectedIds.size === productList.length;
 
@@ -204,6 +245,18 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             type="button"
+                            onClick={() => handleToggleFeatured(product.id, !!product.is_featured)}
+                            className={`p-1.5 rounded-md border transition-colors shadow-xs ${
+                              product.is_featured
+                                ? 'bg-amber-100 border-amber-300 text-amber-700 font-bold'
+                                : 'bg-parchment hover:bg-sandstone border-border text-muted hover:text-charcoal'
+                            }`}
+                            title={product.is_featured ? 'Remove from Homepage Showcase' : 'Highlight on Homepage Showcase'}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${product.is_featured ? 'fill-amber-500 text-amber-600' : ''}`} />
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => setEditingProduct(product)}
                             className="p-1.5 bg-parchment hover:bg-sandstone border border-border text-lapis hover:text-lapis/80 rounded-md transition-colors shadow-xs"
                             title="Edit product"
@@ -223,12 +276,13 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
 
                       {/* Thumbnail */}
                       <td className="p-4">
-                        <div className="w-12 h-14 relative bg-parchment rounded border border-border overflow-hidden shrink-0 aspect-[4/5]">
+                        <div className="relative w-12 h-12 bg-parchment rounded-lg border border-border overflow-hidden shrink-0 shadow-xs">
                           <Image
                             src={product.images[0] || '/images/hero/craft-hero.png'}
                             alt={product.name}
                             fill
                             className="object-cover"
+                            sizes="48px"
                           />
                         </div>
                       </td>
@@ -236,39 +290,32 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
                       {/* Product Name & Slug */}
                       <td className="p-4">
                         <div className="space-y-0.5">
-                          {product.admin_name && product.admin_name !== product.name ? (
-                            <>
-                              <span className="font-serif font-bold text-charcoal text-sm block">
-                                {product.admin_name}
+                          <div className="font-serif font-bold text-charcoal flex items-center gap-1.5">
+                            <span className="hover:text-lapis transition-colors">{product.name}</span>
+                            {product.is_featured && (
+                              <span className="px-1.5 py-0.2 bg-amber-100 text-amber-800 text-[10px] font-bold rounded flex items-center gap-0.5 border border-amber-300">
+                                <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-600" /> Featured
                               </span>
-                              <span className="text-[10px] font-semibold text-lapis bg-lapis/10 px-2 py-0.5 rounded border border-lapis/20 inline-block">
-                                Storefront: {product.name}
-                              </span>
-                            </>
-                          ) : (
-                            <Link
-                              href={`/products/${product.slug}`}
-                              target="_blank"
-                              className="font-serif font-bold text-charcoal hover:text-lapis text-sm line-clamp-1 block"
-                            >
-                              {product.name}
-                            </Link>
+                            )}
+                          </div>
+                          {product.admin_name && product.admin_name !== product.name && (
+                            <span className="text-[10px] text-muted block font-mono">
+                              Internal: {product.admin_name}
+                            </span>
                           )}
-                          <Link
-                            href={`/products/${product.slug}`}
-                            target="_blank"
-                            className="text-[11px] font-mono text-muted hover:text-lapis block"
-                          >
-                            /{product.slug}
-                          </Link>
+                          <span className="text-[11px] text-muted font-mono block">/{product.slug}</span>
                         </div>
                       </td>
 
-                      {/* Craft Category */}
-                      <td className="p-4 font-medium">
-                        <span className="px-2.5 py-1 bg-lapis/10 text-lapis rounded-full text-[11px]">
-                          {product.category?.name || 'Uncategorized'}
-                        </span>
+                      {/* Category */}
+                      <td className="p-4">
+                        {product.category ? (
+                          <span className="px-2.5 py-1 bg-lapis/10 text-lapis font-semibold text-[11px] rounded-full border border-lapis/20">
+                            {product.category.name}
+                          </span>
+                        ) : (
+                          <span className="text-muted italic">Uncategorized</span>
+                        )}
                       </td>
 
                       {/* Price */}
@@ -277,7 +324,7 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
                       </td>
 
                       {/* Weight */}
-                      <td className="p-4 font-mono text-muted">
+                      <td className="p-4 font-mono text-charcoal">
                         {product.weight || 0} kg
                       </td>
 
@@ -292,6 +339,35 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
             </tbody>
           </table>
         </div>
+
+        {/* Server Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="p-4 bg-parchment border-t border-border flex items-center justify-between text-xs">
+            <span className="text-muted font-sans">
+              Showing page <strong className="text-charcoal font-mono">{currentPage}</strong> of <strong className="text-charcoal font-mono">{totalPages}</strong> ({totalCount} total products)
+            </span>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="px-3 py-1.5 bg-sandstone border border-border rounded-lg text-charcoal font-semibold disabled:opacity-40 flex items-center gap-1 hover:border-brass transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" /> Previous
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="px-3 py-1.5 bg-sandstone border border-border rounded-lg text-charcoal font-semibold disabled:opacity-40 flex items-center gap-1 hover:border-brass transition-colors"
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Floating / Sticky Bulk Actions Banner */}

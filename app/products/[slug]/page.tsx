@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { Product, Review } from '@/types/product';
 import { AccordionSection } from '@/components/products/pdp-accordion';
+import { ProductImageGallery } from '@/components/products/product-image-gallery';
+import { ProductVariantPicker } from '@/components/products/product-variant-picker';
 import { PdpActions } from '@/components/products/pdp-actions';
 import { ShieldCheck, Truck, MapPin, PackageCheck, Star, ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -179,36 +181,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         {/* Left Sticky Media Gallery */}
-        <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-24">
-          <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-sandstone border-2 border-border shadow-craft-md">
-            <Image
-              src={primaryImage}
-              alt={product.name}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-            {!product.in_stock && (
-              <div className="absolute top-4 right-4 bg-terracotta text-parchment px-3 py-1 text-xs font-bold rounded-full">
-                Sold Out
-              </div>
-            )}
-          </div>
-
-          {/* Gallery Thumbnails */}
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-3">
-              {product.images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-square rounded-lg overflow-hidden border border-border bg-sandstone hover:border-brass cursor-pointer"
-                >
-                  <Image src={img} alt={`${product.name} preview ${idx + 1}`} fill className="object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="lg:col-span-7">
+          <ProductImageGallery
+            images={product.images}
+            productName={product.name}
+            inStock={product.in_stock}
+          />
         </div>
 
         {/* Right Commerce Rail */}
@@ -246,8 +224,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Interactive Actions (COD & WhatsApp deep-link) */}
-          <PdpActions product={product} />
+          {/* Interactive Variant Picker & Commerce Actions */}
+          <ProductVariantPicker product={product} />
 
           {/* Trust Guarantees */}
           <div className="grid grid-cols-2 gap-3 pt-2">

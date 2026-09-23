@@ -11,7 +11,12 @@ interface CartState {
   isOpen: boolean;
 
   // Actions
-  addItem: (product: Product, quantity?: number) => boolean;
+  addItem: (
+    product: Product,
+    quantity?: number,
+    selectedColor?: string,
+    selectedDesign?: string
+  ) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -34,13 +39,23 @@ export const useCartStore = create<CartState>()(
       items: [],
       isOpen: false,
 
-      addItem: (product: Product, quantity = 1) => {
+      addItem: (
+        product: Product,
+        quantity = 1,
+        selectedColor?: string,
+        selectedDesign?: string
+      ) => {
         if (!product.in_stock) {
           return false;
         }
 
         const currentItems = get().items;
-        const existingIndex = currentItems.findIndex((item) => item.product.id === product.id);
+        const existingIndex = currentItems.findIndex(
+          (item) =>
+            item.product.id === product.id &&
+            (item.selectedColor || '') === (selectedColor || '') &&
+            (item.selectedDesign || '') === (selectedDesign || '')
+        );
 
         if (existingIndex > -1) {
           const updatedItems = [...currentItems];
@@ -51,7 +66,10 @@ export const useCartStore = create<CartState>()(
           set({ items: updatedItems, isOpen: true });
         } else {
           set({
-            items: [...currentItems, { product, quantity }],
+            items: [
+              ...currentItems,
+              { product, quantity, selectedColor, selectedDesign },
+            ],
             isOpen: true,
           });
         }

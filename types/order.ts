@@ -42,6 +42,8 @@ export interface OrderItem {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedColor?: string;
+  selectedDesign?: string;
 }
 
 export interface CheckoutFormData {

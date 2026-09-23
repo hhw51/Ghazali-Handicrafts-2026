@@ -39,6 +39,7 @@ export const sheetProductRowSchema = z.object({
     return [];
   }, z.array(z.string())),
   colors: z.string().optional().default(''),
+  design: z.string().optional().default(''),
   category: z.string().min(1, 'Category is required'),
   weight: z.preprocess((val) => {
     if (typeof val === 'number') return val;

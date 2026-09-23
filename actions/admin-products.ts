@@ -234,6 +234,7 @@ export async function ingestSingleProductRow(row: SheetProductRow): Promise<Inge
           in_stock: row.stock,
           images: finalImages,
           colors: row.colors || null,
+          design: row.design || null,
           category_id: categoryId,
           weight: row.weight || 0,
           tags: row.tags || [],
@@ -316,6 +317,42 @@ export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
       success: false,
       error: err?.message || 'An unexpected error occurred during bulk ingestion.',
     };
+  }
+}
+
+export async function toggleProductFeatured(
+  productId: string,
+  currentIsFeatured: boolean
+): Promise<{
+  success: boolean;
+  newFeaturedState?: boolean;
+  error?: string;
+}> {
+  try {
+    const supabase = createAdminClient();
+    const newFeatured = !currentIsFeatured;
+
+    const { error } = await supabase
+      .from('products')
+      .update({ is_featured: newFeatured, updated_at: new Date().toISOString() })
+      .eq('id', productId);
+
+    if (error) {
+      console.error('Error toggling product featured status:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/products');
+    revalidatePath('/admin/products');
+    revalidatePath('/');
+
+    return {
+      success: true,
+      newFeaturedState: newFeatured,
+    };
+  } catch (err) {
+    console.error('toggleProductFeatured Exception:', err);
+    return { success: false, error: 'Failed to update feature status.' };
   }
 }
 

@@ -22,6 +22,8 @@ create table if not exists public.products (
     in_stock boolean default true not null,
     images text[] default '{}' not null,
     colors text,
+    design text,
+    is_featured boolean default false not null,
     category_id uuid references public.categories(id) on delete set null,
     weight numeric(8, 2) default 0.00,
     tags text[] default '{}' not null,
@@ -82,7 +84,17 @@ create table if not exists public.reviews (
     created_at timestamptz default timezone('utc'::text, now()) not null
 );
 
--- 5. Full-Text Search Function & Indexing
+-- 5. Homepage Sections (CMS Builder)
+create table if not exists public.homepage_sections (
+    id uuid default uuid_generate_v4() primary key,
+    section_type text not null, -- 'hero', 'banner', 'product_grid', 'category_row', 'custom_columns'
+    position integer default 0 not null,
+    is_active boolean default true not null,
+    config jsonb default '{}'::jsonb not null,
+    created_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+-- 6. Full-Text Search Function & Indexing
 create index if not exists idx_products_category on public.products(category_id);
 create index if not exists idx_products_in_stock on public.products(in_stock);
 create index if not exists idx_products_search on public.products using gin (

@@ -78,6 +78,8 @@ export async function parseExcelBuffer(
         rowObj['images'] = cellValue;
       } else if (headerName === 'colors' || headerName === 'color') {
         rowObj['colors'] = cellValue;
+      } else if (headerName === 'design' || headerName === 'pattern' || headerName === 'style') {
+        rowObj['design'] = cellValue;
       } else if (headerName === 'category' || headerName === 'craft category' || headerName === 'material') {
         rowObj['category'] = cellValue;
       } else if (headerName === 'weight') {

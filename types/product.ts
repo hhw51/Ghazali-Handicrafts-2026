@@ -17,6 +17,8 @@ export interface Product {
   in_stock: boolean;
   images: string[];
   colors: string | null;
+  design?: string | null;
+  is_featured?: boolean;
   category_id: string | null;
   weight: number;
   tags: string[];
