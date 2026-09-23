@@ -179,9 +179,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <span className="text-charcoal font-medium truncate max-w-xs">{product.name}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Sticky Media Gallery */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6 xl:col-span-5">
           <ProductImageGallery
             images={product.images}
             productName={product.name}
@@ -190,7 +190,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         </div>
 
         {/* Right Commerce Rail */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-6 xl:col-span-7 space-y-6">
           {/* Provenance Tag & Category */}
           <div className="flex items-center justify-between">
             <span className="px-3 py-1 bg-lapis/10 text-lapis font-semibold text-xs rounded-full border border-lapis/20 flex items-center gap-1">
@@ -217,12 +217,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <span className="text-xs font-sans text-muted font-normal">PKR (Taxes included)</span>
             </p>
           </div>
-
-          {product.short_description && (
-            <div className="p-4 bg-sandstone rounded-lg border border-border text-xs text-charcoal/90 leading-relaxed font-sans">
-              {product.short_description}
-            </div>
-          )}
 
           {/* Interactive Variant Picker & Commerce Actions */}
           <ProductVariantPicker product={product} />

@@ -21,14 +21,14 @@ export function ProductImageGallery({
   return (
     <div className="space-y-4 lg:sticky lg:top-24">
       {/* Main Image Container */}
-      <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-sandstone border-2 border-border shadow-craft-md transition-all duration-300">
+      <div className="relative aspect-square max-h-[500px] mx-auto rounded-xl overflow-hidden bg-sandstone border-2 border-border shadow-craft-md transition-all duration-300">
         <Image
           src={selectedImage}
           alt={productName}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover transition-transform duration-500 hover:scale-105"
+          className="object-contain p-2 transition-transform duration-500 hover:scale-105"
           onError={() => setSelectedImage(fallback)}
         />
         {!inStock && (

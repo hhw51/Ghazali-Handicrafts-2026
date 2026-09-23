@@ -15,6 +15,7 @@ export function CartDrawer() {
     closeDrawer,
     removeItem,
     updateQuantity,
+    updateVariant,
     getSubtotal,
     getShippingFee,
     getTotal,
@@ -58,7 +59,7 @@ export function CartDrawer() {
             </div>
             <button
               onClick={closeDrawer}
-              className="p-1.5 rounded-full text-muted hover:text-charcoal hover:bg-parchment transition-colors"
+              className="p-1.5 rounded-full text-muted hover:text-charcoal hover:bg-parchment transition-colors cursor-pointer"
               aria-label="Close cart"
             >
               <X className="w-5 h-5" />
@@ -113,79 +114,138 @@ export function CartDrawer() {
                 </Link>
               </div>
             ) : (
-              items.map(({ product, quantity }) => (
-                <div key={product.id} className="py-4 flex gap-4 items-start group">
-                  {/* Thumbnail */}
-                  <div className="w-20 h-24 relative bg-sandstone rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
-                    <Image
-                      src={product.images[0] || '/images/hero/craft-hero.png'}
-                      alt={product.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
+              items.map(({ product, quantity, selectedColor, selectedDesign }) => {
+                const colorOptions = product.colors
+                  ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
+                  : [];
+                const designOptions = product.design
+                  ? product.design.split(',').map((d) => d.trim()).filter(Boolean)
+                  : [];
 
-                  {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <Link
-                        href={`/products/${product.slug}`}
-                        onClick={closeDrawer}
-                        className="font-serif text-sm font-semibold text-charcoal hover:text-lapis line-clamp-2 leading-snug"
-                      >
-                        {product.name}
-                      </Link>
-                      <button
-                        onClick={() => removeItem(product.id)}
-                        className="text-muted hover:text-terracotta p-1 transition-colors"
-                        aria-label="Remove item"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                const currentColor = selectedColor || colorOptions[0] || '';
+                const currentDesign = selectedDesign || designOptions[0] || '';
+
+                const sizeText = product.size
+                  ? /^\d+(\.\d+)?$/.test(product.size.trim())
+                    ? `${product.size.trim()} inches`
+                    : product.size
+                  : null;
+
+                return (
+                  <div key={product.id} className="py-4 flex gap-4 items-start group">
+                    {/* Thumbnail */}
+                    <div className="w-20 h-24 relative bg-sandstone rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
+                      <Image
+                        src={product.images[0] || '/images/hero/craft-hero.png'}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
 
-                    {product.size && (
-                      <p className="text-[11px] text-muted mt-0.5">Size: {product.size}</p>
-                    )}
-
-                    <div className="mt-3 flex items-center justify-between">
-                      {/* Quantity Adjuster */}
-                      <div className="flex items-center border border-border rounded-md bg-sandstone overflow-hidden">
-                        <button
-                          onClick={() => updateQuantity(product.id, quantity - 1)}
-                          className="px-2 py-1 text-charcoal hover:bg-parchment text-xs transition-colors"
-                          aria-label="Decrease quantity"
+                    {/* Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <Link
+                          href={`/products/${product.slug}`}
+                          onClick={closeDrawer}
+                          className="font-serif text-sm font-semibold text-charcoal hover:text-lapis line-clamp-2 leading-snug"
                         >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="px-2.5 py-1 text-xs font-semibold font-mono text-charcoal min-w-[24px] text-center">
-                          {quantity}
-                        </span>
+                          {product.name}
+                        </Link>
                         <button
-                          onClick={() => updateQuantity(product.id, quantity + 1)}
-                          disabled={!product.in_stock}
-                          className="px-2 py-1 text-charcoal hover:bg-parchment text-xs transition-colors disabled:opacity-40"
-                          aria-label="Increase quantity"
+                          onClick={() => removeItem(product.id)}
+                          className="text-muted hover:text-terracotta p-1 transition-colors cursor-pointer"
+                          aria-label="Remove item"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
 
-                      {/* Price */}
-                      <div className="text-right">
-                        <p className="text-xs font-bold text-terracotta">
-                          Rs. {(product.price * quantity).toLocaleString()}
-                        </p>
-                        {quantity > 1 && (
-                          <p className="text-[10px] text-muted">
-                            Rs. {product.price.toLocaleString()} each
+                      {/* Dynamic Inline Variant Dropdowns & Size Badge */}
+                      {(colorOptions.length > 0 || designOptions.length > 0 || sizeText) && (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px]">
+                          {colorOptions.length > 0 && (
+                            <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
+                              <span className="text-muted font-medium">Color:</span>
+                              <select
+                                value={currentColor}
+                                onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
+                                className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
+                              >
+                                {colorOptions.map((c) => (
+                                  <option key={c} value={c}>
+                                    {c}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {designOptions.length > 0 && (
+                            <div className="flex items-center gap-1 bg-sandstone px-1.5 py-0.5 rounded border border-border">
+                              <span className="text-muted font-medium">Design:</span>
+                              <select
+                                value={currentDesign}
+                                onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
+                                className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer"
+                              >
+                                {designOptions.map((d) => (
+                                  <option key={d} value={d}>
+                                    {d}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {sizeText && (
+                            <span className="text-[11px] text-muted bg-sandstone px-1.5 py-0.5 rounded border border-border">
+                              Size: {sizeText}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex items-center justify-between">
+                        {/* Quantity Adjuster */}
+                        <div className="flex items-center border border-border rounded-md bg-sandstone overflow-hidden">
+                          <button
+                            onClick={() => updateQuantity(product.id, quantity - 1)}
+                            className="px-2 py-1 text-charcoal hover:bg-parchment text-xs transition-colors cursor-pointer"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="px-2.5 py-1 text-xs font-semibold font-mono text-charcoal min-w-[24px] text-center">
+                            {quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(product.id, quantity + 1)}
+                            disabled={!product.in_stock}
+                            className="px-2 py-1 text-charcoal hover:bg-parchment text-xs transition-colors disabled:opacity-40 cursor-pointer"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-right font-mono">
+                          <p className="text-xs font-bold text-terracotta">
+                            Rs. {(product.price * quantity).toLocaleString()}
                           </p>
-                        )}
+                          {quantity > 1 && (
+                            <p className="text-[10px] text-muted">
+                              Rs. {product.price.toLocaleString()} each
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

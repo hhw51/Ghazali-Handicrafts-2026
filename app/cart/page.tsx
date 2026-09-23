@@ -12,6 +12,7 @@ export default function CartPage() {
     items,
     removeItem,
     updateQuantity,
+    updateVariant,
     getSubtotal,
     getShippingFee,
     getTotal,
@@ -95,67 +96,136 @@ export default function CartPage() {
             </div>
 
             <div className="bg-sandstone rounded-xl border border-border overflow-hidden divide-y divide-border">
-              {items.map(({ product, quantity }) => (
-                <div key={product.id} className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-24 relative bg-parchment rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
-                      <Image
-                        src={product.images[0] || '/images/hero/craft-hero.png'}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                      />
+              {items.map(({ product, quantity, selectedColor, selectedDesign }) => {
+                const colorOptions = product.colors
+                  ? product.colors.split(',').map((c) => c.trim()).filter(Boolean)
+                  : [];
+                const designOptions = product.design
+                  ? product.design.split(',').map((d) => d.trim()).filter(Boolean)
+                  : [];
+
+                const currentColor = selectedColor || colorOptions[0] || '';
+                const currentDesign = selectedDesign || designOptions[0] || '';
+
+                const sizeText = product.size
+                  ? /^\d+(\.\d+)?$/.test(product.size.trim())
+                    ? `${product.size.trim()} inches`
+                    : product.size
+                  : null;
+
+                return (
+                  <div
+                    key={product.id}
+                    className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-20 h-24 relative bg-parchment rounded-md overflow-hidden border border-border shrink-0 aspect-[4/5]">
+                        <Image
+                          src={product.images[0] || '/images/hero/craft-hero.png'}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="space-y-1 min-w-0">
+                        <Link
+                          href={`/products/${product.slug}`}
+                          className="font-serif text-base font-semibold text-charcoal hover:text-lapis transition-colors line-clamp-1"
+                        >
+                          {product.name}
+                        </Link>
+
+                        {/* Dynamic Inline Variant Dropdowns */}
+                        {(colorOptions.length > 0 || designOptions.length > 0 || sizeText) && (
+                          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                            {colorOptions.length > 0 && (
+                              <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
+                                <span className="text-muted font-medium">Color:</span>
+                                <select
+                                  value={currentColor}
+                                  onChange={(e) => updateVariant(product.id, e.target.value, currentDesign)}
+                                  className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
+                                >
+                                  {colorOptions.map((c) => (
+                                    <option key={c} value={c}>
+                                      {c}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            {designOptions.length > 0 && (
+                              <div className="flex items-center gap-1.5 bg-parchment border border-border rounded-md px-2 py-1">
+                                <span className="text-muted font-medium">Design:</span>
+                                <select
+                                  value={currentDesign}
+                                  onChange={(e) => updateVariant(product.id, currentColor, e.target.value)}
+                                  className="bg-transparent text-charcoal font-semibold focus:outline-none cursor-pointer text-xs"
+                                >
+                                  {designOptions.map((d) => (
+                                    <option key={d} value={d}>
+                                      {d}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            {sizeText && (
+                              <span className="text-muted bg-parchment px-2 py-1 rounded-md border border-border text-xs">
+                                Size: {sizeText}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <p className="font-serif text-sm font-bold text-terracotta mt-1">
+                          Rs. {product.price.toLocaleString()} PKR
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <Link
-                        href={`/products/${product.slug}`}
-                        className="font-serif text-base font-semibold text-charcoal hover:text-lapis transition-colors line-clamp-1"
+
+                    <div className="flex items-center justify-between w-full sm:w-auto gap-6">
+                      {/* Quantity Selector Stepper */}
+                      <div className="flex items-center border border-border rounded-md bg-parchment overflow-hidden shadow-xs">
+                        <button
+                          onClick={() => updateQuantity(product.id, quantity - 1)}
+                          className="px-3 py-1.5 text-charcoal hover:bg-sandstone text-xs transition-colors cursor-pointer"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="px-3 py-1.5 text-xs font-semibold font-mono text-charcoal min-w-[32px] text-center">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(product.id, quantity + 1)}
+                          disabled={!product.in_stock}
+                          className="px-3 py-1.5 text-charcoal hover:bg-sandstone text-xs transition-colors disabled:opacity-40 cursor-pointer"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="text-right font-mono">
+                        <p className="text-sm font-bold text-charcoal">
+                          Rs. {(product.price * quantity).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => removeItem(product.id)}
+                        className="text-muted hover:text-terracotta p-2 transition-colors cursor-pointer"
+                        aria-label="Remove item"
                       >
-                        {product.name}
-                      </Link>
-                      {product.size && <p className="text-xs text-muted mt-0.5">Size: {product.size}</p>}
-                      <p className="font-serif text-sm font-bold text-terracotta mt-1">
-                        Rs. {product.price.toLocaleString()} PKR
-                      </p>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between w-full sm:w-auto gap-6">
-                    {/* Quantity Selector */}
-                    <div className="flex items-center border border-border rounded-md bg-parchment overflow-hidden">
-                      <button
-                        onClick={() => updateQuantity(product.id, quantity - 1)}
-                        className="px-3 py-1.5 text-charcoal hover:bg-sandstone text-xs transition-colors"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="px-3 py-1.5 text-xs font-semibold font-mono text-charcoal min-w-[32px] text-center">
-                        {quantity}
-                      </span>
-                      <button
-                        onClick={() => updateQuantity(product.id, quantity + 1)}
-                        disabled={!product.in_stock}
-                        className="px-3 py-1.5 text-charcoal hover:bg-sandstone text-xs transition-colors disabled:opacity-40"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-charcoal font-mono">
-                        Rs. {(product.price * quantity).toLocaleString()}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => removeItem(product.id)}
-                      className="text-muted hover:text-terracotta p-2 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

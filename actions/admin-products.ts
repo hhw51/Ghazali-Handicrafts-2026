@@ -330,11 +330,11 @@ export async function toggleProductFeatured(
 }> {
   try {
     const supabase = createAdminClient();
-    const newFeatured = !currentIsFeatured;
+    const nextState = !currentIsFeatured;
 
     const { error } = await supabase
       .from('products')
-      .update({ is_featured: newFeatured, updated_at: new Date().toISOString() })
+      .update({ is_featured: nextState, updated_at: new Date().toISOString() })
       .eq('id', productId);
 
     if (error) {
@@ -348,7 +348,7 @@ export async function toggleProductFeatured(
 
     return {
       success: true,
-      newFeaturedState: newFeatured,
+      newFeaturedState: nextState,
     };
   } catch (err) {
     console.error('toggleProductFeatured Exception:', err);

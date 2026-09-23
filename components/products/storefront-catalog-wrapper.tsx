@@ -13,7 +13,7 @@ interface StorefrontCatalogWrapperProps {
   pageSize: number;
 }
 
-type MobileGridDensity = '1' | '2' | '4';
+type MobileGridDensity = '1' | '2';
 
 export function StorefrontCatalogWrapper({
   products,
@@ -31,7 +31,7 @@ export function StorefrontCatalogWrapper({
   useEffect(() => {
     try {
       const saved = localStorage.getItem('ghazali_mobile_grid_density');
-      if (saved === '1' || saved === '2' || saved === '4') {
+      if (saved === '1' || saved === '2') {
         setMobileDensity(saved);
       }
     } catch {
@@ -66,7 +66,6 @@ export function StorefrontCatalogWrapper({
   // Responsive Grid Class mapping for mobile vs desktop
   let mobileGridClass = 'grid-cols-2 gap-2.5';
   if (mobileDensity === '1') mobileGridClass = 'grid-cols-1 gap-4';
-  if (mobileDensity === '4') mobileGridClass = 'grid-cols-4 gap-1.5 text-[10px]';
 
   return (
     <div className="space-y-6">
@@ -77,7 +76,7 @@ export function StorefrontCatalogWrapper({
           <button
             type="button"
             onClick={() => handleDensityChange('1')}
-            className={`px-2.5 py-1 rounded font-bold text-[10px] transition-all flex items-center gap-1 ${
+            className={`px-3 py-1 rounded font-bold text-[10px] transition-all flex items-center gap-1 cursor-pointer ${
               mobileDensity === '1'
                 ? 'bg-lapis text-parchment shadow-xs'
                 : 'text-muted hover:text-charcoal'
@@ -88,24 +87,13 @@ export function StorefrontCatalogWrapper({
           <button
             type="button"
             onClick={() => handleDensityChange('2')}
-            className={`px-2.5 py-1 rounded font-bold text-[10px] transition-all flex items-center gap-1 ${
+            className={`px-3 py-1 rounded font-bold text-[10px] transition-all flex items-center gap-1 cursor-pointer ${
               mobileDensity === '2'
                 ? 'bg-lapis text-parchment shadow-xs'
                 : 'text-muted hover:text-charcoal'
             }`}
           >
             <Grid2X2 className="w-3 h-3" /> 2 Col
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDensityChange('4')}
-            className={`px-2.5 py-1 rounded font-bold text-[10px] transition-all flex items-center gap-1 ${
-              mobileDensity === '4'
-                ? 'bg-lapis text-parchment shadow-xs'
-                : 'text-muted hover:text-charcoal'
-            }`}
-          >
-            <LayoutGrid className="w-3 h-3" /> 4 Col
           </button>
         </div>
       </div>

@@ -19,9 +19,15 @@ export function ProductCard({ product }: ProductCardProps) {
   const primaryImage = product.images[0] || '/images/hero/craft-hero.png';
   const secondaryImage = product.images[1] || primaryImage;
 
+  const tagsList = Array.isArray(product.tags)
+    ? product.tags
+    : typeof product.tags === 'string'
+    ? (product.tags as string).split(',').map((t) => t.trim())
+    : [];
+
   // Extract provenance region tag from tags or default
   const regionTag =
-    product.tags.find((t) =>
+    tagsList.find((t) =>
       ['multan', 'swat', 'karachi', 'rawalpindi', 'chiniot', 'balochistan', 'peshawar'].includes(
         t.toLowerCase()
       )
@@ -82,7 +88,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-x-3 bottom-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
             <button
               onClick={handleQuickAdd}
-              className={`w-full py-2.5 px-4 text-xs font-semibold rounded-md flex items-center justify-center gap-2 transition-all duration-200 shadow-craft-md ${
+              className={`w-full py-2.5 px-4 text-xs font-semibold rounded-md flex items-center justify-center gap-2 transition-all duration-200 shadow-craft-md cursor-pointer ${
                 added
                   ? 'bg-emerald-800 text-parchment'
                   : 'bg-lapis text-parchment hover:bg-lapis/90'
@@ -105,18 +111,11 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Product Content Rail */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-2 bg-sandstone">
         <div>
-          <Link
-            href={`/products/${product.slug}`}
-            className="font-serif text-base font-semibold text-charcoal hover:text-lapis transition-colors line-clamp-1 group-hover:underline"
-          >
-            {product.name}
+          <Link href={`/products/${product.slug}`}>
+            <h3 className="font-serif font-medium text-stone-900 line-clamp-2 hover:text-lapis transition-colors">
+              {product.name}
+            </h3>
           </Link>
-
-          {product.short_description && (
-            <p className="text-xs text-muted line-clamp-2 mt-1 leading-relaxed">
-              {product.short_description}
-            </p>
-          )}
         </div>
 
         {/* Price & Size Details */}
@@ -130,7 +129,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
           {product.size && (
             <span className="text-[11px] text-muted bg-parchment px-2 py-0.5 rounded border border-border">
-              {product.size}
+              {/^\d+(\.\d+)?$/.test(product.size.trim()) ? `${product.size.trim()} inches` : product.size}
             </span>
           )}
         </div>

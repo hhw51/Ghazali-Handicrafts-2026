@@ -17,11 +17,11 @@ export interface Product {
   in_stock: boolean;
   images: string[];
   colors: string | null;
-  design?: string | null;
-  is_featured?: boolean;
+  design: string | null;
+  is_featured: boolean;
   category_id: string | null;
   weight: number;
-  tags: string[];
+  tags: string | string[] | null;
   created_at: string;
   updated_at: string;
   category?: Category | null;

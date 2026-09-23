@@ -52,7 +52,7 @@ async function getProductsAndCategories(params: {
 
     if (params.search) {
       const q = params.search.trim();
-      query = query.or(`name.ilike.%${q}%,short_description.ilike.%${q}%,colors.ilike.%${q}%`);
+      query = query.or(`name.ilike.%${q}%,tags.ilike.%${q}%,admin_name.ilike.%${q}%`);
     }
 
     if (params.inStock === 'true') {

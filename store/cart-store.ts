@@ -19,6 +19,11 @@ interface CartState {
   ) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  updateVariant: (
+    productId: string,
+    selectedColor?: string,
+    selectedDesign?: string
+  ) => void;
   clearCart: () => void;
   toggleDrawer: () => void;
   openDrawer: () => void;
@@ -51,24 +56,36 @@ export const useCartStore = create<CartState>()(
 
         const currentItems = get().items;
         const existingIndex = currentItems.findIndex(
-          (item) =>
-            item.product.id === product.id &&
-            (item.selectedColor || '') === (selectedColor || '') &&
-            (item.selectedDesign || '') === (selectedDesign || '')
+          (item) => item.product.id === product.id
         );
+
+        const initialColor =
+          selectedColor ||
+          (product.colors ? product.colors.split(',')[0].trim() : undefined);
+        const initialDesign =
+          selectedDesign ||
+          (product.design ? product.design.split(',')[0].trim() : undefined);
 
         if (existingIndex > -1) {
           const updatedItems = [...currentItems];
+          const existing = updatedItems[existingIndex];
           updatedItems[existingIndex] = {
-            ...updatedItems[existingIndex],
-            quantity: updatedItems[existingIndex].quantity + quantity,
+            ...existing,
+            quantity: existing.quantity + quantity,
+            selectedColor: selectedColor || existing.selectedColor || initialColor,
+            selectedDesign: selectedDesign || existing.selectedDesign || initialDesign,
           };
           set({ items: updatedItems, isOpen: true });
         } else {
           set({
             items: [
               ...currentItems,
-              { product, quantity, selectedColor, selectedDesign },
+              {
+                product,
+                quantity,
+                selectedColor: initialColor,
+                selectedDesign: initialDesign,
+              },
             ],
             isOpen: true,
           });
@@ -91,6 +108,20 @@ export const useCartStore = create<CartState>()(
         const updatedItems = get().items.map((item) =>
           item.product.id === productId ? { ...item, quantity } : item
         );
+        set({ items: updatedItems });
+      },
+
+      updateVariant: (productId: string, selectedColor?: string, selectedDesign?: string) => {
+        const updatedItems = get().items.map((item) => {
+          if (item.product.id === productId) {
+            return {
+              ...item,
+              selectedColor: selectedColor !== undefined ? selectedColor : item.selectedColor,
+              selectedDesign: selectedDesign !== undefined ? selectedDesign : item.selectedDesign,
+            };
+          }
+          return item;
+        });
         set({ items: updatedItems });
       },
 
