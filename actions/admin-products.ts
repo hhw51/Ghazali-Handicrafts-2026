@@ -288,6 +288,10 @@ export async function deleteProduct(productId: string): Promise<{
 }> {
   try {
     const supabase = createAdminClient();
+
+    // Delete any order_items referencing this product to prevent foreign key constraint violations
+    await supabase.from('order_items').delete().eq('product_id', productId);
+
     const { error } = await supabase.from('products').delete().eq('id', productId);
 
     if (error) {
@@ -474,6 +478,10 @@ export async function bulkDeleteProducts(
     }
 
     const supabase = createAdminClient();
+
+    // Delete any order_items referencing these products to prevent foreign key constraint violations
+    await supabase.from('order_items').delete().in('product_id', productIds);
+
     const { error } = await supabase.from('products').delete().in('id', productIds);
 
     if (error) {

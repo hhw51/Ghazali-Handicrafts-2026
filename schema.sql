@@ -63,7 +63,7 @@ create table if not exists public.orders (
 create table if not exists public.order_items (
     id uuid default uuid_generate_v4() primary key,
     order_id uuid references public.orders(id) on delete cascade not null,
-    product_id uuid references public.products(id) on delete restrict not null,
+    product_id uuid references public.products(id) on delete cascade not null,
     quantity integer not null check (quantity > 0),
     unit_price numeric(10,2) not null,
     created_at timestamptz default timezone('utc'::text, now()) not null
