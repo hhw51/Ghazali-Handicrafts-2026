@@ -16,7 +16,10 @@ export const sheetProductRowSchema = z.object({
     z.number().positive('Price must be greater than 0')
   ),
   'short description (underneath product picture)': z.string().optional().default(''),
-  size: z.string().optional().default(''),
+  size: z.preprocess((val) => {
+    if (val === null || val === undefined) return '';
+    return String(val).trim();
+  }, z.string()),
   stock: z.preprocess((val) => {
     if (typeof val === 'boolean') return val;
     if (typeof val === 'string') {

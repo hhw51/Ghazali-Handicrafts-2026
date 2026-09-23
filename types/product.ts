@@ -8,6 +8,7 @@ export interface Category {
 export interface Product {
   id: string;
   name: string;
+  admin_name?: string | null;
   slug: string;
   short_description: string | null;
   long_description: string | null;

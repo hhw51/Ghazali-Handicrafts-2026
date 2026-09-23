@@ -180,7 +180,10 @@ export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
     const productsToUpsert = [];
 
     for (const row of rows) {
-      const prodSlug = slugify(row.name);
+      const shortDescTitle = row['short description (underneath product picture)']?.trim() || '';
+      const storefrontName = shortDescTitle.length > 0 ? shortDescTitle : row.name.trim();
+      const adminName = row.name.trim();
+      const prodSlug = slugify(storefrontName);
       const categoryId = categoryMap.get(row.category.trim().toLowerCase()) || null;
 
       let finalImages = [...row.images];
@@ -199,9 +202,10 @@ export async function bulkUpsertProducts(rows: SheetProductRow[]): Promise<{
       }
 
       productsToUpsert.push({
-        name: row.name,
+        name: storefrontName,
+        admin_name: adminName,
         slug: prodSlug,
-        short_description: row['short description (underneath product picture)'] || null,
+        short_description: shortDescTitle || null,
         long_description: row['long description'] || null,
         price: row.price,
         size: row.size || null,

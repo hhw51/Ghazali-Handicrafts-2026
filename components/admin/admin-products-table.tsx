@@ -235,16 +235,33 @@ export function AdminProductsTable({ products: initialProducts }: AdminProductsT
 
                       {/* Product Name & Slug */}
                       <td className="p-4">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          target="_blank"
-                          className="font-serif font-bold text-charcoal hover:text-lapis text-sm line-clamp-1"
-                        >
-                          {product.name}
-                        </Link>
-                        <span className="text-[11px] font-mono text-muted block mt-0.5">
-                          /{product.slug}
-                        </span>
+                        <div className="space-y-0.5">
+                          {product.admin_name && product.admin_name !== product.name ? (
+                            <>
+                              <span className="font-serif font-bold text-charcoal text-sm block">
+                                {product.admin_name}
+                              </span>
+                              <span className="text-[10px] font-semibold text-lapis bg-lapis/10 px-2 py-0.5 rounded border border-lapis/20 inline-block">
+                                Storefront: {product.name}
+                              </span>
+                            </>
+                          ) : (
+                            <Link
+                              href={`/products/${product.slug}`}
+                              target="_blank"
+                              className="font-serif font-bold text-charcoal hover:text-lapis text-sm line-clamp-1 block"
+                            >
+                              {product.name}
+                            </Link>
+                          )}
+                          <Link
+                            href={`/products/${product.slug}`}
+                            target="_blank"
+                            className="text-[11px] font-mono text-muted hover:text-lapis block"
+                          >
+                            /{product.slug}
+                          </Link>
+                        </div>
                       </td>
 
                       {/* Craft Category */}
