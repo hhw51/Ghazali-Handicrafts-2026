@@ -22,39 +22,80 @@ export function getGoogleDriveClient() {
   return google.drive({ version: 'v3', auth });
 }
 
-export async function optimizeAndConvertImage(
-  inputBuffer: Buffer,
-  originalName: string
-): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
-  // Clean base name without original extension
-  const baseName = originalName
-    .replace(/\.[^/.]+$/, '')
-    .replace(/[^a-zA-Z0-9_-]/g, '_');
+export async function processAndUploadImage(
+  fileBuffer: Buffer,
+  originalName: string,
+  mimeType: string,
+  productSlug: string,
+  supabaseClient: any = createAdminClient()
+): Promise<string | null> {
+  try {
+    const lowerName = originalName.toLowerCase();
+    const isHeic = 
+      lowerName.endsWith('.heic') || 
+      lowerName.endsWith('.heif') || 
+      mimeType.includes('heic') || 
+      mimeType.includes('heif');
 
-  // Process pipeline:
-  // - auto-rotate based on EXIF orientation (fixes upside-down/sideways iPhone photos)
-  // - resize max width 1600px (sufficient for high-DPI desktop zoom, preserves aspect ratio)
-  // - convert to WebP with smart near-lossless compression (quality 82, effort 4)
-  const optimizedBuffer = await sharp(inputBuffer)
-    .rotate() // Auto-orients mobile photos
-    .resize({
-      width: 1600,
-      withoutEnlargement: true,
-      fit: 'inside',
-    })
-    .webp({
-      quality: 82,
-      effort: 4, // Balances CPU processing speed with compression ratio
-    })
-    .toBuffer();
+    let processedBuffer: Buffer;
+    const cleanBase = originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const finalFileName = `${Date.now()}_${cleanBase}.webp`;
 
-  const outputFileName = `${Date.now()}_${baseName}.webp`;
+    if (isHeic) {
+      console.log(`[Image Ingestion] Converting Apple HEIC -> WebP for: ${originalName}`);
+      try {
+        // Sharp supports HEIC decoding out of the box on modern builds
+        processedBuffer = await sharp(fileBuffer)
+          .rotate() // auto-orient mobile rotation
+          .resize({ width: 1400, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
+      } catch (sharpHeicErr) {
+        console.warn(`[Sharp HEIC Fallback] Using heic-convert decoder for: ${originalName}`);
+        const heicConvert = (await import('heic-convert')).default;
+        const jpegBuffer = await heicConvert({
+          buffer: fileBuffer,
+          format: 'JPEG',
+          quality: 1,
+        });
+        processedBuffer = await sharp(Buffer.from(jpegBuffer))
+          .rotate()
+          .resize({ width: 1400, withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
+      }
+    } else {
+      // Even standard JPEG/PNG should be normalized and compressed to WebP
+      processedBuffer = await sharp(fileBuffer)
+        .rotate()
+        .resize({ width: 1400, withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer();
+    }
 
-  return {
-    buffer: optimizedBuffer,
-    fileName: outputFileName,
-    contentType: 'image/webp',
-  };
+    const storagePath = `products/${productSlug}/${finalFileName}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('pictures')
+      .upload(storagePath, processedBuffer, {
+        contentType: 'image/webp',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error(`[Upload Error] ${storagePath}:`, uploadError);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabaseClient.storage
+      .from('pictures')
+      .getPublicUrl(storagePath);
+
+    return publicUrlData?.publicUrl || null;
+  } catch (err) {
+    console.error(`[Processing Error] Failed processing ${originalName}:`, err);
+    return null;
+  }
 }
 
 export async function fetchAndUploadDriveFolderImages(
@@ -120,42 +161,19 @@ export async function fetchAndUploadDriveFolderImages(
       );
 
       const rawBuffer = Buffer.from(fileRes.data as ArrayBuffer);
+      const mimeType = file.mimeType || 'image/jpeg';
 
-      let uploadBuffer: any = rawBuffer;
-      let safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      let contentType = file.mimeType || 'image/jpeg';
+      const publicUrl = await processAndUploadImage(
+        rawBuffer,
+        file.name,
+        mimeType,
+        productSlug,
+        supabaseClient
+      );
 
-      try {
-        const optimized = await optimizeAndConvertImage(rawBuffer, file.name);
-        uploadBuffer = optimized.buffer;
-        safeName = optimized.fileName;
-        contentType = optimized.contentType;
-        console.log(`[Sharp Optimization] Converted ${file.name} -> ${safeName} (${Math.round(uploadBuffer.length / 1024)} KB WebP)`);
-      } catch (sharpErr) {
-        console.warn(`[Sharp Optimization Warning] Could not optimize ${file.name}, uploading raw buffer:`, sharpErr);
-      }
-
-      const storagePath = `products/${productSlug}/${safeName}`;
-
-      const { error: uploadError } = await supabaseClient.storage
-        .from('pictures')
-        .upload(storagePath, uploadBuffer, {
-          contentType,
-          upsert: true,
-        });
-
-      if (uploadError) {
-        console.error(`[Supabase Storage Error] Failed to upload ${storagePath}:`, uploadError);
-        continue;
-      }
-
-      const { data: publicUrlData } = supabaseClient.storage
-        .from('pictures')
-        .getPublicUrl(storagePath);
-
-      if (publicUrlData?.publicUrl) {
-        publicUrls.push(publicUrlData.publicUrl);
-        console.log(`[Supabase Storage] Uploaded: ${publicUrlData.publicUrl}`);
+      if (publicUrl) {
+        publicUrls.push(publicUrl);
+        console.log(`[Supabase Storage] Successfully uploaded WebP: ${publicUrl}`);
       }
     }
 
