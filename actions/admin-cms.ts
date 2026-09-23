@@ -3,12 +3,28 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
+export type SectionType =
+  | 'hero'
+  | 'category_grid'
+  | 'product_showcase'
+  | 'editorial_banner'
+  | 'heritage_story'
+  | 'trust_bar'
+  | 'artisan_spotlight'
+  | 'banner'
+  | 'product_grid'
+  | 'category_row'
+  | 'custom_columns'
+  | (string & {});
+
 export interface HomepageSectionRecord {
   id: string;
-  section_type: 'hero' | 'banner' | 'product_grid' | 'category_row' | 'custom_columns';
+  title?: string;
+  section_type: SectionType;
   position: number;
   is_active: boolean;
-  config: Record<string, any>;
+  settings?: Record<string, any>;
+  config?: Record<string, any>;
   created_at?: string;
 }
 
@@ -41,7 +57,9 @@ export async function saveHomepageSection(
       section_type: section.section_type || 'hero',
       position: section.position ?? 0,
       is_active: section.is_active ?? true,
-      config: section.config || {},
+      title: section.title || section.settings?.title || section.config?.title || `${section.section_type} Section`,
+      settings: section.settings || section.config || {},
+      config: section.config || section.settings || {},
       ...(section.id ? { id: section.id } : {}),
     };
 
