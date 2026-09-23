@@ -309,7 +309,14 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
               <div className="flex flex-wrap gap-3 pt-1">
                 {existingImages.map((imgUrl, idx) => (
                   <div key={idx} className="relative group w-16 h-16 bg-parchment rounded-lg border border-border overflow-hidden shadow-xs">
-                    <img src={imgUrl} alt="Product image" className="w-full h-full object-cover" />
+                    <img
+                      src={imgUrl}
+                      alt="Product image"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/hero/craft-hero.png';
+                      }}
+                    />
                     <button
                       type="button"
                       onClick={() => handleRemoveExistingImage(idx)}

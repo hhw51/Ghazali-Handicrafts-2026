@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import sharp from 'sharp';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export function getGoogleDriveClient() {
@@ -19,6 +20,41 @@ export function getGoogleDriveClient() {
   });
 
   return google.drive({ version: 'v3', auth });
+}
+
+export async function optimizeAndConvertImage(
+  inputBuffer: Buffer,
+  originalName: string
+): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
+  // Clean base name without original extension
+  const baseName = originalName
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  // Process pipeline:
+  // - auto-rotate based on EXIF orientation (fixes upside-down/sideways iPhone photos)
+  // - resize max width 1600px (sufficient for high-DPI desktop zoom, preserves aspect ratio)
+  // - convert to WebP with smart near-lossless compression (quality 82, effort 4)
+  const optimizedBuffer = await sharp(inputBuffer)
+    .rotate() // Auto-orients mobile photos
+    .resize({
+      width: 1600,
+      withoutEnlargement: true,
+      fit: 'inside',
+    })
+    .webp({
+      quality: 82,
+      effort: 4, // Balances CPU processing speed with compression ratio
+    })
+    .toBuffer();
+
+  const outputFileName = `${Date.now()}_${baseName}.webp`;
+
+  return {
+    buffer: optimizedBuffer,
+    fileName: outputFileName,
+    contentType: 'image/webp',
+  };
 }
 
 export async function fetchAndUploadDriveFolderImages(
@@ -48,14 +84,14 @@ export async function fetchAndUploadDriveFolderImages(
 
     // Test folder accessibility & list image files
     const listRes = await drive.files.list({
-      q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
+      q: `'${folderId}' in parents and (mimeType contains 'image/' or mimeType contains 'octet-stream') and trashed = false`,
       fields: 'files(id, name, mimeType, size)',
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
     });
 
     const files = listRes.data.files || [];
-    console.log(`[Drive Ingest] Found ${files.length} images in folder ${folderId}`);
+    console.log(`[Drive Ingest] Found ${files.length} image files in folder ${folderId}`);
 
     if (files.length === 0) {
       console.warn(`[Drive Ingest] No image files found or folder not shared with Service Account: ${folderId}`);
@@ -83,14 +119,28 @@ export async function fetchAndUploadDriveFolderImages(
         { responseType: 'arraybuffer' }
       );
 
-      const buffer = Buffer.from(fileRes.data as ArrayBuffer);
-      const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const rawBuffer = Buffer.from(fileRes.data as ArrayBuffer);
+
+      let uploadBuffer: any = rawBuffer;
+      let safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      let contentType = file.mimeType || 'image/jpeg';
+
+      try {
+        const optimized = await optimizeAndConvertImage(rawBuffer, file.name);
+        uploadBuffer = optimized.buffer;
+        safeName = optimized.fileName;
+        contentType = optimized.contentType;
+        console.log(`[Sharp Optimization] Converted ${file.name} -> ${safeName} (${Math.round(uploadBuffer.length / 1024)} KB WebP)`);
+      } catch (sharpErr) {
+        console.warn(`[Sharp Optimization Warning] Could not optimize ${file.name}, uploading raw buffer:`, sharpErr);
+      }
+
       const storagePath = `products/${productSlug}/${safeName}`;
 
       const { error: uploadError } = await supabaseClient.storage
         .from('pictures')
-        .upload(storagePath, buffer, {
-          contentType: file.mimeType || 'image/jpeg',
+        .upload(storagePath, uploadBuffer, {
+          contentType,
           upsert: true,
         });
 
