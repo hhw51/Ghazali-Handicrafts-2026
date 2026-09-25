@@ -138,7 +138,7 @@ export function FeaturedMasterpiecesSection({
             <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold block mb-1">
               Direct From Master Ustads
             </span>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface">{headline}</h2>
+            <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface">{headline}</h2>
           </div>
           <Link
             href="/products"
@@ -158,7 +158,7 @@ export function FeaturedMasterpiecesSection({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-full font-label-md text-label-md uppercase tracking-wider transition-colors whitespace-nowrap shadow-xs cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full font-syne text-xs uppercase tracking-wider transition-colors whitespace-nowrap shadow-xs cursor-pointer ${
                   isActive
                     ? 'bg-[#00405C] text-white'
                     : 'bg-surface-container-high text-on-surface hover:bg-surface-variant'
@@ -222,13 +222,13 @@ export function FeaturedMasterpiecesSection({
                       </span>
                     </div>
                     <Link href={`/products/${product.slug}`}>
-                      <h3 className="font-headline-sm text-[1.125rem] text-on-surface leading-snug group-hover:text-primary transition-colors line-clamp-1">
+                      <h3 className="font-syne text-sm sm:text-base font-medium text-on-surface leading-snug group-hover:text-primary transition-colors line-clamp-1">
                         {product.name}
                       </h3>
                     </Link>
                   </div>
                   <div className="flex items-baseline justify-between pt-2 border-t border-surface-container-high">
-                    <span className="font-headline-sm text-headline-sm text-primary font-bold">
+                    <span className="font-syne text-base sm:text-lg font-bold text-primary">
                       Rs. {product.price.toLocaleString()}
                     </span>
                     <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">

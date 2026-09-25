@@ -90,16 +90,27 @@ const config: Config = {
         'display-xl-mobile': ['var(--font-syne)', 'sans-serif'],
       },
       fontSize: {
-        'label-sm': ['0.6875rem', { lineHeight: '0.875rem', letterSpacing: '0.12em', fontWeight: '600' }],
-        'label-md': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.1em', fontWeight: '600' }],
-        'label-lg': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.08em', fontWeight: '700' }],
-        'body-sm': ['0.875rem', { lineHeight: '1.5rem', letterSpacing: '0.01em', fontWeight: '400' }],
-        'body-md': ['1rem', { lineHeight: '1.75rem', letterSpacing: '0.01em', fontWeight: '400' }],
-        'body-lg': ['1.25rem', { lineHeight: '2rem', letterSpacing: '0.01em', fontWeight: '400' }],
-        'headline-sm': ['1.375rem', { lineHeight: '1.875rem', letterSpacing: '0em', fontWeight: '600' }],
-        'headline-md': ['2rem', { lineHeight: '2.5rem', letterSpacing: '-0.01em', fontWeight: '600' }],
-        'headline-lg': ['3rem', { lineHeight: '3.5rem', letterSpacing: '-0.02em', fontWeight: '700' }],
-        'display-xl': ['4.5rem', { lineHeight: '5rem', letterSpacing: '-0.03em', fontWeight: '800' }],
+        // Mobile / compact displays
+        'display-xl-mobile': ['2rem', { lineHeight: '2.4rem', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-lg-mobile': ['1.625rem', { lineHeight: '2.1rem', letterSpacing: '-0.01em', fontWeight: '700' }],
+        
+        // Desktop display (Toned down from 4.5rem to balanced 2.75rem / 44px)
+        'display-xl': ['2.75rem', { lineHeight: '3.25rem', letterSpacing: '-0.02em', fontWeight: '700' }],
+        // Section Headings (H2) (Toned down from 3rem to 2rem / 32px)
+        'headline-lg': ['2rem', { lineHeight: '2.5rem', letterSpacing: '-0.015em', fontWeight: '600' }],
+        // Subheadings (H3)
+        'headline-md': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'headline-sm': ['1.125rem', { lineHeight: '1.5rem', letterSpacing: '0em', fontWeight: '600' }],
+        
+        // Refined Body & Captions (Libre Caslon Text)
+        'body-lg': ['1.0625rem', { lineHeight: '1.75rem', letterSpacing: '0.01em', fontWeight: '400' }],
+        'body-md': ['0.9375rem', { lineHeight: '1.6rem', letterSpacing: '0.01em', fontWeight: '400' }],
+        'body-sm': ['0.8125rem', { lineHeight: '1.35rem', letterSpacing: '0.01em', fontWeight: '400' }],
+
+        // Badges & Micro-Labels (Syne)
+        'label-lg': ['0.8125rem', { lineHeight: '1.15rem', letterSpacing: '0.06em', fontWeight: '600' }],
+        'label-md': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.08em', fontWeight: '600' }],
+        'label-sm': ['0.6875rem', { lineHeight: '0.875rem', letterSpacing: '0.1em', fontWeight: '600' }],
       },
       spacing: {
         gutter: '2rem',

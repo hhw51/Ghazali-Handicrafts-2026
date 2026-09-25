@@ -27,17 +27,17 @@ export function LifestyleGiftSection() {
               <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">
                 Thoughtful Heritage Gifting
               </span>
-              <h2 className="font-headline-lg text-headline-lg text-on-surface leading-tight">
+              <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface leading-tight">
                 Heirloom Accents That Tell a Story.
               </h2>
             </div>
 
-            <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            <p className="font-serif text-sm sm:text-base text-on-surface-variant leading-relaxed">
               Elevate modern living rooms and corporate executive suites with authentic craft. Hand-carved Sheesham wood tissue covers, solid brass chatuwata mortars, and artisanal marble desk clocks—curated specifically for memorable weddings, commemorative milestones, and diplomatic gifting.
             </p>
 
             {/* Quick Gifting Bullet Points */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-xs font-body-sm text-body-sm text-on-surface">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-xs font-serif text-xs sm:text-sm text-on-surface">
               <div className="flex items-center gap-2">
                 <Gift className="w-4 h-4 text-primary shrink-0" />
                 <span>Bespoke Brass Inscribed Plaques</span>

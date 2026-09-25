@@ -12,10 +12,10 @@ export function CratingGuaranteeSection() {
           <span className="font-label-sm text-label-sm uppercase tracking-widest text-[#1E4B3E] font-bold">
             Uncompromising Transit Assurance
           </span>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface">
+          <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface">
             The Ghazali Fragile Crating Guarantee
           </h2>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="font-serif text-xs sm:text-sm text-on-surface-variant">
             We understand the fragility of fired clay glazes, carved walnut, and Himalayan salt crystals. That is why our transit process is museum-grade.
           </p>
         </div>
@@ -27,8 +27,8 @@ export function CratingGuaranteeSection() {
             <div className="w-12 h-12 rounded-lg bg-[#1E4B3E]/10 text-[#1E4B3E] flex items-center justify-center mb-1">
               <PackageCheck className="w-7 h-7" />
             </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">Multi-Layer Crating</h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            <h3 className="font-syne text-base sm:text-lg font-semibold text-on-surface">Multi-Layer Crating</h3>
+            <p className="font-serif text-xs sm:text-sm text-on-surface-variant leading-relaxed">
               Every porcelain vase, rock salt sculpture, and walnut panel is cushioned in dual shock-absorbent cell-foam, cocooned in heavy-duty bubble wraps, and sealed inside reinforced wooden transit framing.
             </p>
             <div className="pt-2 font-label-sm text-label-sm text-[#1E4B3E] uppercase tracking-widest font-semibold flex items-center gap-1">
@@ -42,8 +42,8 @@ export function CratingGuaranteeSection() {
             <div className="w-12 h-12 rounded-lg bg-[#00405C]/10 text-[#00405C] flex items-center justify-center mb-1">
               <ShieldCheck className="w-7 h-7" />
             </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">100% Zero-Breakage Policy</h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            <h3 className="font-syne text-base sm:text-lg font-semibold text-on-surface">100% Zero-Breakage Policy</h3>
+            <p className="font-serif text-xs sm:text-sm text-on-surface-variant leading-relaxed">
               Should transit mishandling ever result in a chipped rim, hair fracture, or damaged timber, our emergency dispatch sends a complimentary, priority replacement immediately without dispute.
             </p>
             <div className="pt-2 font-label-sm text-label-sm text-[#00405C] uppercase tracking-widest font-semibold flex items-center gap-1">
@@ -57,8 +57,8 @@ export function CratingGuaranteeSection() {
             <div className="w-12 h-12 rounded-lg bg-[#B38743]/10 text-[#B38743] flex items-center justify-center mb-1">
               <Truck className="w-7 h-7" />
             </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">Inspect on Delivery (COD)</h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            <h3 className="font-syne text-base sm:text-lg font-semibold text-on-surface">Inspect on Delivery (COD)</h3>
+            <p className="font-serif text-xs sm:text-sm text-on-surface-variant leading-relaxed">
               Unbox and verify the safety of your artisanal piece right at your doorstep before handing over the Cash on Delivery payment. True peace of mind in every Pakistani city and tehsil.
             </p>
             <div className="pt-2 font-label-sm text-label-sm text-[#B38743] uppercase tracking-widest font-semibold flex items-center gap-1">

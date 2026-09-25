@@ -33,13 +33,13 @@ export function HeroSection({ config }: { config?: HeroSectionConfig }) {
         {/* Left Narrative Column (Cols 1-7) */}
         <div className="lg:col-span-7 flex flex-col items-start space-y-space-md z-10">
           {/* Eyebrow Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm uppercase tracking-widest shadow-xs border border-surface-container-highest">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-[11px] uppercase tracking-wider shadow-xs border border-surface-container-highest">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
             <span>{badgeText}</span>
           </div>
 
           {/* Expressive Editorial Headline */}
-          <h1 className="font-headline-lg text-headline-lg lg:text-display-xl text-on-surface leading-[1.08] tracking-tight">
+          <h1 className="font-syne text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-on-surface leading-tight">
             {mainTitle}{' '}
             <span className="italic font-serif text-primary block sm:inline font-normal">
               Hand-Chiseled
@@ -48,7 +48,7 @@ export function HeroSection({ config }: { config?: HeroSectionConfig }) {
           </h1>
 
           {/* Poetic Body Copy */}
-          <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
+          <p className="font-serif text-sm sm:text-base text-on-surface-variant max-w-xl leading-relaxed">
             {subtitle}
           </p>
 

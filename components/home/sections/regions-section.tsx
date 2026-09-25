@@ -76,9 +76,9 @@ export function RegionsSection({ config }: RegionsSectionProps) {
             <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold block mb-1">
               Authentic Regional Provenance
             </span>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface">{headline}</h2>
+            <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface">{headline}</h2>
           </div>
-          <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
+          <p className="font-serif text-xs sm:text-sm text-on-surface-variant max-w-md">
             {subheadline}
           </p>
         </div>
@@ -105,8 +105,8 @@ export function RegionsSection({ config }: RegionsSectionProps) {
                 >
                   {card.origin}
                 </span>
-                <h3 className="font-headline-sm text-headline-sm text-white">{card.title}</h3>
-                <p className="font-body-sm text-body-sm text-white/90 line-clamp-2">
+                <h3 className="font-syne text-base sm:text-lg font-semibold text-white">{card.title}</h3>
+                <p className="font-serif text-xs sm:text-sm text-white/90 line-clamp-2">
                   {card.description}
                 </p>
                 <div className="pt-2 flex items-center justify-between text-[#C5A880] font-label-sm text-label-sm uppercase tracking-widest">

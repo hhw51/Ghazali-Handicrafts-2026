@@ -10,7 +10,7 @@ export function HeritageSpotlightSection() {
   return (
     <section className="relative w-full bg-surface-container-high py-space-xl px-margin-mobile md:px-margin-tablet lg:px-margin overflow-hidden border-y border-surface-container-highest">
       {/* Background Watermark */}
-      <div className="absolute -top-12 -right-8 select-none pointer-events-none opacity-5 font-headline-lg text-[16rem] leading-none font-bold text-on-surface">
+      <div className="absolute -top-12 -right-8 select-none pointer-events-none opacity-5 font-syne text-[8rem] sm:text-[10rem] leading-none font-bold text-on-surface">
         1976
       </div>
 
@@ -21,10 +21,10 @@ export function HeritageSpotlightSection() {
             <History className="w-4 h-4 text-primary" />
             <span>ESTABLISHED 1976 • 50 YEARS AT THE SAME HISTORIC SHOP</span>
           </span>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface leading-tight">
+          <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface leading-tight">
             Half a Century of Preserving Pakistan's Living Craft
           </h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant">
+          <p className="font-serif text-sm sm:text-base text-on-surface-variant">
             From our original flagship shop in Lahore to master artisan workshops across Swat, Multan, and Sillanwali.
           </p>
         </div>
@@ -33,13 +33,13 @@ export function HeritageSpotlightSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
           {/* Left Column: Narrative & Metrics (Cols 1-6) */}
           <div className="lg:col-span-6 space-y-space-md">
-            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            <p className="font-serif text-sm sm:text-base text-on-surface-variant leading-relaxed">
               In 1976, Ghazali Handicrafts opened its doors with a simple pledge: to provide an enduring sanctuary for master Pakistani Ustads whose craft was being eclipsed by factory reproductions. Fifty uninterrupted years later, operating from the very same historic shop address in Lahore, we continue our lifelong guardianship of genuine Sheesham joinery, Kashigari tile glazes, and hand-beaten Peshawar brassware.
             </p>
 
             {/* Founder's Pull-Quote Callout */}
             <blockquote className="p-space-md rounded-xl bg-surface-container-lowest/90 backdrop-blur-xs shadow-xs border-l-4 border-[#00405C]">
-              <p className="font-body-lg text-body-lg italic text-on-surface mb-2">
+              <p className="font-serif text-base sm:text-lg italic text-on-surface mb-2 leading-snug">
                 “For 50 years, this shop has not just sold decorative pieces; we have guarded the dignity and generational survival of our country's master craftsmen.”
               </p>
               <cite className="font-label-md text-label-md text-primary font-bold uppercase tracking-widest block not-italic">
