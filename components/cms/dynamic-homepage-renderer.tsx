@@ -3,7 +3,6 @@
 import React from 'react';
 import { HomepageSectionRecord } from '@/actions/admin-cms';
 import { Product, Category } from '@/types/product';
-import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { HeroSection } from '@/components/home/sections/hero-section';
 import { RegionsSection } from '@/components/home/sections/regions-section';
 import { FeaturedMasterpiecesSection } from '@/components/home/sections/featured-masterpieces-section';
@@ -28,7 +27,7 @@ export function DynamicHomepageRenderer({
 }: DynamicHomepageRendererProps) {
   // Combine sections map lookup
   const activeSectionsList = sectionsList.length > 0 ? sectionsList : sections;
-  
+
   // Extract configuration from O(1) map or settings/config
   const getSectionConfig = (type: string, legacyKey1?: string, legacyKey2?: string) => {
     if (sectionsMap[type]) return sectionsMap[type];
@@ -51,7 +50,6 @@ export function DynamicHomepageRenderer({
 
   return (
     <div className="w-full space-y-0">
-      <AnnouncementBar config={announcementConfig} />
       <HeroSection config={heroConfig} />
       <RegionsSection config={regionsConfig} dbCategories={categories} />
       <FeaturedMasterpiecesSection config={featuredConfig} allProducts={allProducts} />
