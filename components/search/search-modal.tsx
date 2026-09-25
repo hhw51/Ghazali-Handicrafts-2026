@@ -4,7 +4,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Search, X, Loader2, ArrowRight, Tag, Sparkles, Scale } from 'lucide-react';
-import { searchProducts, SearchProductResult } from '@/actions/products/search';
+
+export interface SearchProductItem {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  image?: string | null;
+  size?: string | null;
+  weight?: number | null;
+  tags?: string[];
+}
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -16,12 +26,15 @@ const QUICK_SUGGESTIONS = ['Truck Art', 'Multan', 'Swati', 'Onyx', 'Salt Lamp'];
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchProductResult[]>([]);
+  const [results, setResults] = useState<SearchProductItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus input when opened
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cacheRef = useRef<Map<string, SearchProductItem[]>>(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Focus input when modal opens
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
@@ -35,7 +48,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     }
   }, [isOpen]);
 
-  // Global Keyboard Shortcuts (Cmd+K / Ctrl+K and Escape)
+  // Keyboard Shortcuts (Cmd+K / Ctrl+K & Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -51,24 +64,64 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Debounced live search query (250ms)
+  // Fast Edge search with 150ms debounce, in-memory cache, and AbortController
   useEffect(() => {
-    if (!query.trim()) {
+    const trimmedKey = query.trim().toLowerCase();
+
+    if (!trimmedKey) {
       setResults([]);
       setIsLoading(false);
       setHasSearched(false);
       return;
     }
 
-    setIsLoading(true);
-    const timer = setTimeout(async () => {
-      const data = await searchProducts(query);
-      setResults(data);
+    // 1. Check Synchronous Local Cache (0ms response)
+    if (cacheRef.current.has(trimmedKey)) {
+      setResults(cacheRef.current.get(trimmedKey)!);
       setIsLoading(false);
       setHasSearched(true);
-    }, 250);
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    // 2. Abort any previous pending network request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setIsLoading(true);
+
+    // 3. 150ms Debounced Edge API Fetch
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmedKey)}`, {
+          signal: controller.signal,
+        });
+
+        if (!res.ok) throw new Error('Search failed');
+
+        const data = await res.json();
+        const fetchedResults: SearchProductItem[] = data.results || [];
+
+        // Save to in-memory cache
+        cacheRef.current.set(trimmedKey, fetchedResults);
+
+        setResults(fetchedResults);
+        setIsLoading(false);
+        setHasSearched(true);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Edge search fetch error:', err);
+          setIsLoading(false);
+          setHasSearched(true);
+        }
+      }
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [query]);
 
   if (!isOpen) return null;
@@ -99,19 +152,18 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     router.push(`/products/${slug}`);
   };
 
-  const getImageUrl = (images: any): string => {
-    if (Array.isArray(images) && images.length > 0) return images[0];
-    if (typeof images === 'string' && images.startsWith('http')) return images;
+  const getDisplayImage = (img: string | null | undefined): string => {
+    if (img && typeof img === 'string' && img.trim()) return img;
     return '/images/collections/blue-pottery.png';
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-20 px-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-20 px-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
       {/* Backdrop overlay click to close */}
       <div className="fixed inset-0" onClick={onClose} />
 
       {/* Command Palette Modal Dialog */}
-      <div className="relative w-full max-w-2xl bg-parchment rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl bg-parchment rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-150">
         {/* Search Input Bar */}
         <form onSubmit={handleViewAll} className="relative flex items-center px-4 py-3.5 border-b border-border bg-sandstone/80">
           <Search className="w-5 h-5 text-lapis shrink-0 mr-3" />
@@ -158,7 +210,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           ))}
         </div>
 
-        {/* Live Search Results / Content View */}
+        {/* Live Search Results View */}
         <div className="max-h-[60vh] overflow-y-auto p-4 space-y-3">
           {query.trim() === '' ? (
             <div className="py-8 text-center space-y-2">
@@ -168,13 +220,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <p className="text-xs text-muted">
                 Type keywords like <strong className="text-charcoal font-semibold">"Truck Art"</strong>,{' '}
                 <strong className="text-charcoal font-semibold">"Multan"</strong>, or{' '}
-                <strong className="text-charcoal font-semibold">"Swati"</strong> to discover authentic crafts.
+                <strong className="text-charcoal font-semibold">"Swati"</strong> for zero-lag instant results.
               </p>
             </div>
-          ) : isLoading ? (
-            <div className="py-12 text-center space-y-2">
-              <Loader2 className="w-8 h-8 text-lapis animate-spin mx-auto" />
-              <p className="text-xs text-muted">Searching Ghazali archival database...</p>
+          ) : isLoading && results.length === 0 ? (
+            <div className="py-10 text-center space-y-2">
+              <Loader2 className="w-7 h-7 text-lapis animate-spin mx-auto" />
+              <p className="text-xs text-muted">Fetching instant Edge results...</p>
             </div>
           ) : hasSearched && results.length === 0 ? (
             <div className="py-10 text-center space-y-3">
@@ -190,7 +242,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {results.map((product) => {
-                const imgUrl = getImageUrl(product.images);
+                const imgUrl = getDisplayImage(product.image);
                 const isExternal = imgUrl.startsWith('http');
 
                 return (
@@ -204,8 +256,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         src={imgUrl}
                         alt={product.name}
                         fill
+                        sizes="56px"
                         unoptimized={isExternal && !imgUrl.includes('supabase.co')}
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover group-hover:scale-105 transition-transform duration-200"
                       />
                     </div>
 
@@ -242,7 +295,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         {query.trim() && !isLoading && (
           <div className="p-3 bg-sandstone border-t border-border flex items-center justify-between gap-3 text-xs">
             <span className="text-muted text-[11px] hidden sm:inline">
-              Found <strong className="text-charcoal font-bold">{results.length}</strong> matching items
+              Found <strong className="text-charcoal font-bold">{results.length}</strong> instant results
             </span>
 
             <button
