@@ -28,7 +28,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuB-ldg8jpKFwoWE3yBgeJIo-lvOxOyDTLElr23Vr7ED7pDc0nNpIl1m7DDWUwSTaB4ldsMrpLpIhjNkur7cursL1UnjUchvRpL4bvzOpuzIavPfZKX7_4Bu5MR0ndGxvXqt_h2JMWV78W13Sgb-Nca-eepUMKXNTpbUdwXF14nhLRkuFD5syv0prV2e2OYEH4XurDPzmOkZPiWoeGB5qvQxU9X98lp_pozBJy3L2XLOZwjE1Ul6pLfF',
     ],
     category: { id: 'c1', name: 'Taxila Marble', slug: 'marble-onyx', created_at: '2026-01-01T00:00:00Z' },
-    dimensions: '6 inches',
+    size: '6 inches',
   },
   {
     id: 'fb-2',
@@ -41,7 +41,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDlj4LaQyG6DOtjTc4WGzoHd0jDcrJfLIMe_QU-Al1IwscsXJC7qvrWOIvPk82tN7mw_GquUREhglrjzYGGNJxnEBiqeULFekwNYOs6uBiQgFb7eom9AkKSRIwtgLfrMC2aDwbxVD3Vipj6kHdHvscSotnhmHvsj-h133cJDLo-wPPUV6-MdCLXWB8yMqAjF0GiAuBsfsxY2tNAmJsfXUe5wYVqqCWtk1RBgu050udsfgUH9nRwWUjS',
     ],
     category: { id: 'c2', name: 'Multan Glazes', slug: 'blue-pottery', created_at: '2026-01-01T00:00:00Z' },
-    dimensions: '14 inches',
+    size: '14 inches',
   },
   {
     id: 'fb-3',
@@ -54,7 +54,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDbP32QrwCLHRVW81bYtfhNaiw9WdQMW8SitwVtiLfDQ5Oj5r3M1YJfSJdjf75v9-D4wSlDuvL3d5fMK6WiFTAXamH00bHOzqTylnlZnoME_fGUCyLHbq7-RdUPcg5THo7lm_IauQiOo_W4gHBcA8qKbZ8MNPE-SEczheZtjrjqBwb4UvZY8h53gBiNgnM4WR12wuEXIa5tClTmwGr3S79FZEleK5y8uyIc-jLg51ef70XK1c2FmRSe',
     ],
     category: { id: 'c3', name: 'Swat Valley', slug: 'swati-woodwork', created_at: '2026-01-01T00:00:00Z' },
-    dimensions: '18 x 12 inches',
+    size: '18 x 12 inches',
   },
   {
     id: 'fb-4',
@@ -67,7 +67,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuC3uhLXNTsgdMGww9plo1VLs07o1a2vG4KHcGslCy1XuS3M6RyBS9zqzw5c0zw-0sW__FhwtBsUzdakKALnaplF5hBOLwvLNGrc5Wqh2UBurlkhFLbep0F8Wy7sh_OtgPDqE6hfRBLdSLL2BBsUb3gugHcnUsV1kaDZ5QBicnTwCYv6gMSpUDouXnFgiy_lXfPRCJXUCsr2gj6t-OkE2Ehp5z1vRJLtISWAE3C6-lDBnOoAcqDTkOf0',
     ],
     category: { id: 'c4', name: 'Khewra Range', slug: 'marble-onyx', created_at: '2026-01-01T00:00:00Z' },
-    dimensions: '3.5 kg',
+    size: '3.5 kg',
   },
 ];
 
@@ -216,7 +216,7 @@ export function FeaturedMasterpiecesSection({
                 <div className="p-space-md flex flex-col flex-1 justify-between space-y-2">
                   <div>
                     <div className="flex items-center justify-between text-on-surface-variant text-[12px] mb-1 font-mono">
-                      <span>{product.dimensions || 'Archival Quality'}</span>
+                      <span>{product.size || 'Archival Quality'}</span>
                       <span className="flex items-center text-amber-600 gap-0.5">
                         <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9 (42)
                       </span>
