@@ -1,10 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { ProductSortSelect } from '@/components/products/product-sort-select';
-import { ProductPriceFilter } from '@/components/products/product-price-filter';
+import { CatalogToolbar } from '@/components/products/catalog-toolbar';
 import { StorefrontCatalogWrapper } from '@/components/products/storefront-catalog-wrapper';
 import { Product, Category } from '@/types/product';
 import Link from 'next/link';
-import { Search, Sparkles, Filter, RefreshCw } from 'lucide-react';
+import { Sparkles, Filter } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +38,7 @@ async function getProductsAndCategories(params: {
     // 1. Fetch categories
     const { data: categories } = await supabase.from('categories').select('*').order('name');
 
-    // 2. Build product query
+    // 2. Build product query with tags & internal_name support
     let query = supabase
       .from('products')
       .select('*, category:categories(*)', { count: 'exact' });
@@ -53,7 +52,7 @@ async function getProductsAndCategories(params: {
 
     if (params.search) {
       const q = params.search.trim();
-      query = query.or(`name.ilike.%${q}%,tags.ilike.%${q}%,admin_name.ilike.%${q}%`);
+      query = query.or(`name.ilike.%${q}%,tags.ilike.%${q}%,internal_name.ilike.%${q}%`);
     }
 
     if (params.inStock === 'true') {
@@ -119,128 +118,39 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const inStockOnly = resolvedParams.inStock === 'true';
 
   return (
-    <div className="pb-20 space-y-8">
-      {/* PLP Cultural Overview Banner */}
-      <div className="bg-sandstone border-b border-border py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center space-y-3">
+    <div className="pb-20 space-y-6">
+      {/* PLP Cultural Overview Header */}
+      <div className="bg-sandstone border-b border-border py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/15 text-terracotta rounded-full text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-terracotta" />
             <span>100% Authentic Pakistani Craft Lineage</span>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-charcoal">
-            The Artisanal Heritage Catalog
+          <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-charcoal">
+            Artisanal Heritage Catalog
           </h1>
-          <p className="text-sm text-muted max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted max-w-xl mx-auto leading-relaxed">
             Explore authentic hand-thrown Multani ceramic vessels, Swati walnut carvings, hand-turned onyx chessboards, and Rawalpindi truck art tea kettles.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Category Pill Navigation Strip */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none border-b border-border">
-          <Link
-            href="/products"
-            className={`px-4 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-              !selectedCategorySlug
-                ? 'bg-lapis text-parchment shadow-craft-sm'
-                : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-border'
-            }`}
-          >
-            All Collections ({totalCount})
-          </Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/products?category=${cat.slug}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ''}`}
-              className={`px-4 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-                selectedCategorySlug === cat.slug
-                  ? 'bg-lapis text-parchment shadow-craft-sm'
-                  : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-border'
-              }`}
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+        {/* Compact Modern Catalog Toolbar */}
+        <CatalogToolbar
+          categories={categories}
+          selectedCategorySlug={selectedCategorySlug}
+          totalCount={totalCount}
+          currentSort={currentSort}
+          inStockOnly={inStockOnly}
+          minPrice={resolvedParams.minPrice}
+          maxPrice={resolvedParams.maxPrice}
+          searchQuery={searchQuery}
+        />
 
-        {/* Price Range Filter & Presets */}
-        <div className="py-4 border-b border-border">
-          <ProductPriceFilter
-            currentMinPrice={resolvedParams.minPrice}
-            currentMaxPrice={resolvedParams.maxPrice}
-          />
-        </div>
-
-        {/* Filter Controls & Search Bar */}
-        <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-border">
-          {/* Active Search & Filter Count Indicator */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <form action="/products" method="GET" className="flex items-center flex-1 md:w-80">
-              {selectedCategorySlug && (
-                <input type="hidden" name="category" value={selectedCategorySlug} />
-              )}
-              {resolvedParams.minPrice && (
-                <input type="hidden" name="minPrice" value={resolvedParams.minPrice} />
-              )}
-              {resolvedParams.maxPrice && (
-                <input type="hidden" name="maxPrice" value={resolvedParams.maxPrice} />
-              )}
-              <input
-                type="text"
-                name="search"
-                defaultValue={searchQuery}
-                placeholder="Search Multani, Swati, Marble..."
-                className="w-full px-3 py-2 text-xs bg-sandstone border border-border rounded-l-md focus:outline-none focus:ring-1 focus:ring-brass text-charcoal"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-lapis text-parchment text-xs font-medium rounded-r-md hover:bg-lapis/90 transition-colors flex items-center gap-1"
-              >
-                <Search className="w-3.5 h-3.5" />
-              </button>
-            </form>
-
-            {(searchQuery || selectedCategorySlug || inStockOnly || resolvedParams.minPrice || resolvedParams.maxPrice) && (
-              <Link
-                href="/products"
-                className="text-xs text-terracotta hover:underline font-medium flex items-center gap-1 shrink-0"
-              >
-                <RefreshCw className="w-3 h-3" /> Clear Filters
-              </Link>
-            )}
-          </div>
-
-          {/* Sort & Availability Filter */}
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end text-xs">
-            <Link
-              href={`/products?${new URLSearchParams({
-                ...(selectedCategorySlug && { category: selectedCategorySlug }),
-                ...(searchQuery && { search: searchQuery }),
-                inStock: inStockOnly ? 'false' : 'true',
-                sort: currentSort,
-              }).toString()}`}
-              className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
-                inStockOnly
-                  ? 'bg-emerald-950 text-emerald-200 border-emerald-500/40'
-                  : 'bg-sandstone text-charcoal border-border hover:bg-chiseled'
-              }`}
-            >
-              {inStockOnly ? '✓ In Stock Only' : 'Show In-Stock Only'}
-            </Link>
-
-            <ProductSortSelect
-              currentSort={currentSort}
-              selectedCategorySlug={selectedCategorySlug}
-              searchQuery={searchQuery}
-              inStockOnly={inStockOnly}
-            />
-          </div>
-        </div>
-
-        {/* Responsive Catalog Grid with Mobile Density Toggle & Pagination */}
+        {/* Responsive Catalog Grid */}
         {products.length === 0 ? (
-          <div className="py-20 text-center space-y-4">
+          <div className="py-16 text-center space-y-4">
             <div className="w-16 h-16 bg-sandstone rounded-full flex items-center justify-center mx-auto border border-border text-muted">
               <Filter className="w-8 h-8" />
             </div>

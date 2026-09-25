@@ -7,13 +7,13 @@ import { ShoppingBag, Search, Menu, X, ShieldCheck, Truck, Sparkles } from 'luci
 import { useCartStore } from '@/store/cart-store';
 
 import { FestiveBanner } from '@/components/layout/festive-banner';
+import { SearchModal } from '@/components/search/search-modal';
 
 export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const items = useCartStore((state) => state.items);
   const openDrawer = useCartStore((state) => state.openDrawer);
@@ -29,12 +29,17 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
-    }
-  };
+  // Keyboard shortcut listener for Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full transition-all duration-300">
@@ -124,44 +129,20 @@ export function Header() {
             </Link>
           </div>
 
-          {/* Header Action Buttons (Search & Cart Drawer Trigger) */}
+          {/* Header Action Buttons (Search Modal & Cart Drawer Trigger) */}
           <div className="flex items-center gap-3">
-            {/* Search Trigger */}
-            <div className="relative">
-              {searchOpen ? (
-                <form onSubmit={handleSearchSubmit} className="flex items-center">
-                  <input
-                    type="text"
-                    placeholder="Search Multani vase, Swati chest..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-48 sm:w-64 px-3 py-1.5 text-xs bg-sandstone border border-border rounded-l-md focus:outline-none focus:ring-1 focus:ring-brass text-charcoal"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="bg-lapis text-parchment p-1.5 rounded-r-md hover:bg-lapis/90 transition-colors"
-                  >
-                    <Search className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSearchOpen(false)}
-                    className="ml-2 text-muted hover:text-charcoal"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setSearchOpen(true)}
-                  className="p-2 text-charcoal hover:text-lapis transition-colors rounded-full hover:bg-sandstone"
-                  aria-label="Open search"
-                >
-                  <Search className="w-5 h-5" />
-                </button>
-              )}
-            </div>
+            {/* Search Trigger Button */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="p-2 text-charcoal hover:text-lapis transition-colors rounded-full hover:bg-sandstone flex items-center gap-1.5 group cursor-pointer"
+              aria-label="Open search dialog"
+              title="Search crafts (Cmd+K)"
+            >
+              <Search className="w-5 h-5 text-charcoal group-hover:text-lapis transition-colors" />
+              <span className="hidden lg:inline-block text-[11px] font-mono text-muted bg-sandstone px-1.5 py-0.5 rounded border border-border group-hover:border-lapis/40">
+                ⌘K
+              </span>
+            </button>
 
             {/* Persistent Cart Trigger with Badge */}
             <button
@@ -241,6 +222,9 @@ export function Header() {
           </div>
         )}
       </nav>
+
+      {/* Global Search Modal Dialog */}
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }
