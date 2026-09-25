@@ -27,7 +27,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
     images: [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuB-ldg8jpKFwoWE3yBgeJIo-lvOxOyDTLElr23Vr7ED7pDc0nNpIl1m7DDWUwSTaB4ldsMrpLpIhjNkur7cursL1UnjUchvRpL4bvzOpuzIavPfZKX7_4Bu5MR0ndGxvXqt_h2JMWV78W13Sgb-Nca-eepUMKXNTpbUdwXF14nhLRkuFD5syv0prV2e2OYEH4XurDPzmOkZPiWoeGB5qvQxU9X98lp_pozBJy3L2XLOZwjE1Ul6pLfF',
     ],
-    category: { id: 'c1', name: 'Taxila Marble', slug: 'marble-onyx' },
+    category: { id: 'c1', name: 'Taxila Marble', slug: 'marble-onyx', created_at: '2026-01-01T00:00:00Z' },
     dimensions: '6 inches',
   },
   {
@@ -40,7 +40,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
     images: [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDlj4LaQyG6DOtjTc4WGzoHd0jDcrJfLIMe_QU-Al1IwscsXJC7qvrWOIvPk82tN7mw_GquUREhglrjzYGGNJxnEBiqeULFekwNYOs6uBiQgFb7eom9AkKSRIwtgLfrMC2aDwbxVD3Vipj6kHdHvscSotnhmHvsj-h133cJDLo-wPPUV6-MdCLXWB8yMqAjF0GiAuBsfsxY2tNAmJsfXUe5wYVqqCWtk1RBgu050udsfgUH9nRwWUjS',
     ],
-    category: { id: 'c2', name: 'Multan Glazes', slug: 'blue-pottery' },
+    category: { id: 'c2', name: 'Multan Glazes', slug: 'blue-pottery', created_at: '2026-01-01T00:00:00Z' },
     dimensions: '14 inches',
   },
   {
@@ -53,7 +53,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
     images: [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDbP32QrwCLHRVW81bYtfhNaiw9WdQMW8SitwVtiLfDQ5Oj5r3M1YJfSJdjf75v9-D4wSlDuvL3d5fMK6WiFTAXamH00bHOzqTylnlZnoME_fGUCyLHbq7-RdUPcg5THo7lm_IauQiOo_W4gHBcA8qKbZ8MNPE-SEczheZtjrjqBwb4UvZY8h53gBiNgnM4WR12wuEXIa5tClTmwGr3S79FZEleK5y8uyIc-jLg51ef70XK1c2FmRSe',
     ],
-    category: { id: 'c3', name: 'Swat Valley', slug: 'swati-woodwork' },
+    category: { id: 'c3', name: 'Swat Valley', slug: 'swati-woodwork', created_at: '2026-01-01T00:00:00Z' },
     dimensions: '18 x 12 inches',
   },
   {
@@ -66,7 +66,7 @@ const FALLBACK_PRODUCTS: Partial<Product>[] = [
     images: [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuC3uhLXNTsgdMGww9plo1VLs07o1a2vG4KHcGslCy1XuS3M6RyBS9zqzw5c0zw-0sW__FhwtBsUzdakKALnaplF5hBOLwvLNGrc5Wqh2UBurlkhFLbep0F8Wy7sh_OtgPDqE6hfRBLdSLL2BBsUb3gugHcnUsV1kaDZ5QBicnTwCYv6gMSpUDouXnFgiy_lXfPRCJXUCsr2gj6t-OkE2Ehp5z1vRJLtISWAE3C6-lDBnOoAcqDTkOf0',
     ],
-    category: { id: 'c4', name: 'Khewra Range', slug: 'marble-onyx' },
+    category: { id: 'c4', name: 'Khewra Range', slug: 'marble-onyx', created_at: '2026-01-01T00:00:00Z' },
     dimensions: '3.5 kg',
   },
 ];
