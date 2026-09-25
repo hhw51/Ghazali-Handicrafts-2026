@@ -27,6 +27,55 @@ import {
   Gift,
 } from 'lucide-react';
 
+export interface CraftHubItem {
+  id: string;
+  regionBadge: string;
+  title: string;
+  description: string;
+  catalogCount: string;
+  linkUrl: string;
+  image: string;
+}
+
+export const DEFAULT_CRAFT_HUBS: CraftHubItem[] = [
+  {
+    id: 'hub_multani_kashigari',
+    regionBadge: 'South Punjab • 800-Yr Tradition',
+    title: 'Multani Kashigari',
+    description: 'Cobalt & turquoise glazed urns, hanging architectural plates, and hand-painted tea sets.',
+    catalogCount: '38 Cataloged Pieces',
+    linkUrl: '/products?category=multani-blue-pottery',
+    image: '/images/collections/blue-pottery.png',
+  },
+  {
+    id: 'hub_swati_wood',
+    regionBadge: 'Khyber Pakhtunkhwa • Ustad Relief',
+    title: 'Swati Walnut Wood',
+    description: 'Deep-chiseled art trays, heritage coffee tables, bridal chest panels, and jewelry coffers.',
+    catalogCount: '24 Cataloged Pieces',
+    linkUrl: '/products?category=swati-carvings',
+    image: '/images/collections/swati-wood.png',
+  },
+  {
+    id: 'hub_truck_art',
+    regionBadge: 'Chamka & Enamel Phool Patti',
+    title: 'Pakistani Truck Art',
+    description: 'Hand-painted brass kettles, vibrant serving platters, and wooden nostalgic truck miniatures.',
+    catalogCount: '19 Cataloged Pieces',
+    linkUrl: '/products?category=truck-art',
+    image: '/images/collections/truck-art.jpg',
+  },
+  {
+    id: 'hub_amber_salt',
+    regionBadge: 'Salt Range & Punjab Woodcarvers',
+    title: 'Amber Salt & Brass',
+    description: 'Pure Khewra Himalayan rock lamps, heavy brass chatuwata, and lacquer-turned spice vessels.',
+    catalogCount: '29 Cataloged Pieces',
+    linkUrl: '/products?category=marble-onyx',
+    image: '/images/collections/marble-crafts.jpg',
+  },
+];
+
 interface AdminCmsEditorProps {
   initialSections: HomepageSectionRecord[];
 }
@@ -115,6 +164,115 @@ export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
       return {
         ...prev,
         [sectionType]: {
+          ...existing,
+          settings: updatedSettings,
+          config: updatedSettings,
+        },
+      };
+    });
+  };
+
+  const handleUpdateHubItem = (hubIdx: number, field: keyof CraftHubItem, value: string) => {
+    setCmsState((prev) => {
+      const existing = prev['regions_mastery'] || {
+        section_type: 'regions_mastery',
+        position: 0,
+        is_active: true,
+        settings: {},
+      };
+      const currentSettings = existing.settings || existing.config || {};
+      const currentHubs: CraftHubItem[] =
+        Array.isArray(currentSettings.hubs) && currentSettings.hubs.length > 0
+          ? [...currentSettings.hubs]
+          : [...DEFAULT_CRAFT_HUBS];
+
+      if (currentHubs[hubIdx]) {
+        currentHubs[hubIdx] = {
+          ...currentHubs[hubIdx],
+          [field]: value,
+        };
+      }
+
+      const updatedSettings = {
+        ...currentSettings,
+        hubs: currentHubs,
+      };
+
+      return {
+        ...prev,
+        regions_mastery: {
+          ...existing,
+          settings: updatedSettings,
+          config: updatedSettings,
+        },
+      };
+    });
+  };
+
+  const handleAddHub = () => {
+    setCmsState((prev) => {
+      const existing = prev['regions_mastery'] || {
+        section_type: 'regions_mastery',
+        position: 0,
+        is_active: true,
+        settings: {},
+      };
+      const currentSettings = existing.settings || existing.config || {};
+      const currentHubs: CraftHubItem[] =
+        Array.isArray(currentSettings.hubs) && currentSettings.hubs.length > 0
+          ? [...currentSettings.hubs]
+          : [...DEFAULT_CRAFT_HUBS];
+
+      const newHub: CraftHubItem = {
+        id: `hub_${Date.now()}`,
+        regionBadge: 'Artisan Region • Heritage Craft',
+        title: 'New Craft Hub',
+        description: 'Description of traditional regional handicraft and artisanal legacy.',
+        catalogCount: '10 Cataloged Pieces',
+        linkUrl: '/products',
+        image: '/images/collections/blue-pottery.png',
+      };
+
+      const updatedSettings = {
+        ...currentSettings,
+        hubs: [...currentHubs, newHub],
+      };
+
+      return {
+        ...prev,
+        regions_mastery: {
+          ...existing,
+          settings: updatedSettings,
+          config: updatedSettings,
+        },
+      };
+    });
+  };
+
+  const handleRemoveHub = (hubIdx: number) => {
+    setCmsState((prev) => {
+      const existing = prev['regions_mastery'] || {
+        section_type: 'regions_mastery',
+        position: 0,
+        is_active: true,
+        settings: {},
+      };
+      const currentSettings = existing.settings || existing.config || {};
+      const currentHubs: CraftHubItem[] =
+        Array.isArray(currentSettings.hubs) && currentSettings.hubs.length > 0
+          ? [...currentSettings.hubs]
+          : [...DEFAULT_CRAFT_HUBS];
+
+      const updatedHubs = currentHubs.filter((_, idx) => idx !== hubIdx);
+
+      const updatedSettings = {
+        ...currentSettings,
+        hubs: updatedHubs,
+      };
+
+      return {
+        ...prev,
+        regions_mastery: {
           ...existing,
           settings: updatedSettings,
           config: updatedSettings,
@@ -500,31 +658,156 @@ export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
                 )}
 
                 {/* 3. Regional Craft Hubs */}
-                {sk.id === 'regions_mastery' && (
-                  <div className="space-y-4 text-xs font-sans">
-                    <div className="space-y-1">
-                      <label className="font-semibold text-charcoal block">Section Headline</label>
-                      <input
-                        type="text"
-                        value={settings.headline || 'Discover Crafts by Origin'}
-                        onChange={(e) => handleUpdateSetting(sk.id, 'headline', e.target.value)}
-                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
-                      />
+                {sk.id === 'regions_mastery' && (() => {
+                  const hubs: CraftHubItem[] =
+                    Array.isArray(settings.hubs) && settings.hubs.length > 0
+                      ? settings.hubs
+                      : DEFAULT_CRAFT_HUBS;
+
+                  return (
+                    <div className="space-y-4 text-xs font-sans">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Section Headline</label>
+                        <input
+                          type="text"
+                          value={settings.headline || 'Discover Crafts by Origin'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'headline', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Section Subheadline</label>
+                        <input
+                          type="text"
+                          value={
+                            settings.subheadline ||
+                            "Centuries of generational mastery across Pakistan's historic artisan valleys, curated with archival reverence."
+                          }
+                          onChange={(e) => handleUpdateSetting(sk.id, 'subheadline', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-charcoal text-sm">Individual Craft Cards ({hubs.length})</h4>
+                          <button
+                            type="button"
+                            onClick={handleAddHub}
+                            className="px-3 py-1.5 bg-[#00405C] hover:bg-[#003248] text-white rounded-md text-xs font-semibold cursor-pointer transition-colors"
+                          >
+                            + Add New Craft Hub
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {hubs.map((hub: CraftHubItem, idx: number) => (
+                            <div key={hub.id || idx} className="p-4 bg-sandstone rounded-xl border border-border space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-xs text-charcoal">Card #{idx + 1}</span>
+                                {hubs.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveHub(idx)}
+                                    className="text-red-600 hover:text-red-800 text-xs font-medium cursor-pointer"
+                                  >
+                                    Remove
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-charcoal block">Region / Heritage Badge</label>
+                                <input
+                                  type="text"
+                                  value={hub.regionBadge || ''}
+                                  onChange={(e) => handleUpdateHubItem(idx, 'regionBadge', e.target.value)}
+                                  className="w-full px-2.5 py-1.5 bg-parchment border border-border rounded text-xs text-charcoal"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-semibold text-charcoal block">Craft Title</label>
+                                  <input
+                                    type="text"
+                                    value={hub.title || ''}
+                                    onChange={(e) => handleUpdateHubItem(idx, 'title', e.target.value)}
+                                    className="w-full px-2.5 py-1.5 bg-parchment border border-border rounded text-xs text-charcoal font-semibold"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-semibold text-charcoal block">Cataloged Pieces Text</label>
+                                  <input
+                                    type="text"
+                                    value={hub.catalogCount || ''}
+                                    onChange={(e) => handleUpdateHubItem(idx, 'catalogCount', e.target.value)}
+                                    className="w-full px-2.5 py-1.5 bg-parchment border border-border rounded text-xs text-charcoal"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-charcoal block">Short Description</label>
+                                <textarea
+                                  rows={2}
+                                  value={hub.description || ''}
+                                  onChange={(e) => handleUpdateHubItem(idx, 'description', e.target.value)}
+                                  className="w-full px-2.5 py-1.5 bg-parchment border border-border rounded text-xs text-charcoal"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-charcoal block">Destination Link URL</label>
+                                <input
+                                  type="text"
+                                  value={hub.linkUrl || ''}
+                                  onChange={(e) => handleUpdateHubItem(idx, 'linkUrl', e.target.value)}
+                                  className="w-full px-2.5 py-1.5 bg-parchment border border-border rounded text-xs text-charcoal font-mono text-[11px]"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-charcoal block">Cover Image (URL or Upload)</label>
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="text"
+                                    value={hub.image || ''}
+                                    onChange={(e) => handleUpdateHubItem(idx, 'image', e.target.value)}
+                                    className="w-full px-2.5 py-1.5 bg-parchment border border-border rounded text-xs text-charcoal font-mono text-[11px]"
+                                  />
+                                  <label className="px-2.5 py-1.5 bg-chiseled hover:bg-border border border-border rounded text-xs font-semibold flex items-center gap-1 cursor-pointer shrink-0">
+                                    <Upload className="w-3.5 h-3.5 text-lapis" />
+                                    <span>Upload</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          const formData = new FormData();
+                                          formData.append('file', file);
+                                          const res = await uploadCmsImage(formData);
+                                          if (res.success && res.url) {
+                                            handleUpdateHubItem(idx, 'image', res.url);
+                                            showToast('✓ Image uploaded to Supabase Storage!');
+                                          } else {
+                                            showToast(res.error || 'Failed to upload image.', 'error');
+                                          }
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <label className="font-semibold text-charcoal block">Section Subheadline</label>
-                      <input
-                        type="text"
-                        value={
-                          settings.subheadline ||
-                          "Centuries of generational mastery across Pakistan's historic artisan valleys, curated with archival reverence."
-                        }
-                        onChange={(e) => handleUpdateSetting(sk.id, 'subheadline', e.target.value)}
-                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
-                      />
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* 4. Featured Masterpieces */}
                 {sk.id === 'featured_masterpieces' && (
