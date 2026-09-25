@@ -48,11 +48,10 @@ export function Header() {
 
       {/* Main Navigation Bar */}
       <nav
-        className={`w-full transition-all duration-300 ${
-          isScrolled
+        className={`w-full transition-all duration-300 ${isScrolled
             ? 'bg-parchment/95 backdrop-blur-md border-b border-border shadow-craft-sm py-3'
             : 'bg-parchment border-b border-border/60 py-4'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Mobile Hamburger Toggle */}
@@ -78,9 +77,8 @@ export function Header() {
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="/"
-              className={`text-sm font-medium transition-colors hover:text-lapis relative py-1 ${
-                pathname === '/' ? 'text-lapis font-semibold' : 'text-charcoal/80'
-              }`}
+              className={`text-sm font-medium transition-colors hover:text-lapis relative py-1 ${pathname === '/' ? 'text-lapis font-semibold' : 'text-charcoal/80'
+                }`}
             >
               Home
               {pathname === '/' && (
@@ -90,9 +88,8 @@ export function Header() {
 
             <Link
               href="/products"
-              className={`text-sm font-medium transition-colors hover:text-lapis relative py-1 ${
-                pathname === '/products' ? 'text-lapis font-semibold' : 'text-charcoal/80'
-              }`}
+              className={`text-sm font-medium transition-colors hover:text-lapis relative py-1 ${pathname === '/products' ? 'text-lapis font-semibold' : 'text-charcoal/80'
+                }`}
             >
               Catalog
               {pathname === '/products' && (
@@ -139,9 +136,6 @@ export function Header() {
               title="Search crafts (Cmd+K)"
             >
               <Search className="w-5 h-5 text-charcoal group-hover:text-lapis transition-colors" />
-              <span className="hidden lg:inline-block text-[11px] font-mono text-muted bg-sandstone px-1.5 py-0.5 rounded border border-border group-hover:border-lapis/40">
-                ⌘K
-              </span>
             </button>
 
             {/* Persistent Cart Trigger with Badge */}

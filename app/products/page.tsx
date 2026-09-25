@@ -13,6 +13,7 @@ interface PageProps {
     search?: string;
     minPrice?: string;
     maxPrice?: string;
+    weightRange?: string;
     inStock?: string;
     sort?: string;
     page?: string;
@@ -25,6 +26,7 @@ async function getProductsAndCategories(params: {
   search?: string;
   minPrice?: string;
   maxPrice?: string;
+  weightRange?: string;
   inStock?: string;
   sort?: string;
   page?: number;
@@ -38,7 +40,7 @@ async function getProductsAndCategories(params: {
     // 1. Fetch categories
     const { data: categories } = await supabase.from('categories').select('*').order('name');
 
-    // 2. Build product query with tags & internal_name support
+    // 2. Build product query
     let query = supabase
       .from('products')
       .select('*, category:categories(*)', { count: 'exact' });
@@ -51,8 +53,28 @@ async function getProductsAndCategories(params: {
     }
 
     if (params.search) {
-      const q = params.search.trim();
-      query = query.or(`name.ilike.%${q}%,tags.ilike.%${q}%,internal_name.ilike.%${q}%`);
+      const q = params.search.trim().toLowerCase();
+      const pattern = `%${q}%`;
+
+      // Find matching categories first
+      const { data: matchedCats } = await supabase
+        .from('categories')
+        .select('id')
+        .or(`name.ilike.${pattern},slug.ilike.${pattern}`);
+
+      const matchedCatIds = (matchedCats || []).map((c) => c.id);
+
+      if (matchedCatIds.length > 0) {
+        query = query.or(
+          `name.ilike.${pattern},short_description.ilike.${pattern},long_description.ilike.${pattern},design.ilike.${pattern},category_id.in.(${matchedCatIds.join(
+            ','
+          )})`
+        );
+      } else {
+        query = query.or(
+          `name.ilike.${pattern},short_description.ilike.${pattern},long_description.ilike.${pattern},design.ilike.${pattern}`
+        );
+      }
     }
 
     if (params.inStock === 'true') {
@@ -69,10 +91,21 @@ async function getProductsAndCategories(params: {
       if (!isNaN(maxP)) query = query.lte('price', maxP);
     }
 
+    // Weight range preset filtering
+    if (params.weightRange) {
+      if (params.weightRange === '100-250') {
+        query = query.gte('weight', 100).lte('weight', 250);
+      } else if (params.weightRange === '300-500') {
+        query = query.gte('weight', 300).lte('weight', 500);
+      } else if (params.weightRange === '550-plus') {
+        query = query.gte('weight', 550);
+      }
+    }
+
     // Sorting
-    if (params.sort === 'price-asc') {
+    if (params.sort === 'price-asc' || params.sort === 'price_asc') {
       query = query.order('price', { ascending: true });
-    } else if (params.sort === 'price-desc') {
+    } else if (params.sort === 'price-desc' || params.sort === 'price_desc') {
       query = query.order('price', { ascending: false });
     } else {
       query = query.order('created_at', { ascending: false });
@@ -145,6 +178,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           inStockOnly={inStockOnly}
           minPrice={resolvedParams.minPrice}
           maxPrice={resolvedParams.maxPrice}
+          weightRange={resolvedParams.weightRange}
           searchQuery={searchQuery}
         />
 
@@ -160,7 +194,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/products"
-              className="inline-block px-5 py-2.5 bg-lapis text-parchment text-xs font-medium rounded-md hover:bg-lapis/90 transition-colors"
+              className="inline-block px-5 py-2.5 bg-[#00405C] text-white text-xs font-medium rounded-md hover:bg-[#003248] transition-colors"
             >
               Reset All Filters
             </Link>

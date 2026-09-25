@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, X, Loader2, ArrowRight, Tag, Sparkles } from 'lucide-react';
+import { Search, X, Loader2, ArrowRight, Tag, Sparkles, Scale } from 'lucide-react';
 import { searchProducts, SearchProductResult } from '@/actions/products/search';
 
 interface SearchModalProps {
@@ -11,7 +11,7 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-const QUICK_SUGGESTIONS = ['Multan', 'Swati', 'Truck Art', 'Onyx', 'Salt Lamp'];
+const QUICK_SUGGESTIONS = ['Truck Art', 'Multan', 'Swati', 'Onyx', 'Salt Lamp'];
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const router = useRouter();
@@ -31,6 +31,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setQuery('');
       setResults([]);
       setHasSearched(false);
+      setIsLoading(false);
     }
   }, [isOpen]);
 
@@ -41,8 +42,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         e.preventDefault();
         if (isOpen) {
           onClose();
-        } else {
-          // Open triggered from external header
         }
       } else if (e.key === 'Escape' && isOpen) {
         onClose();
@@ -52,7 +51,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Debounced live search query (300ms)
+  // Debounced live search query (250ms)
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -67,7 +66,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setResults(data);
       setIsLoading(false);
       setHasSearched(true);
-    }, 300);
+    }, 250);
 
     return () => clearTimeout(timer);
   }, [query]);
@@ -76,12 +75,14 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   const handleSelectSuggestion = (term: string) => {
     setQuery(term);
+    inputRef.current?.focus();
   };
 
   const handleClear = () => {
     setQuery('');
     setResults([]);
     setHasSearched(false);
+    setIsLoading(false);
     inputRef.current?.focus();
   };
 
@@ -105,7 +106,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-20 px-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       {/* Backdrop overlay click to close */}
       <div className="fixed inset-0" onClick={onClose} />
 
@@ -129,7 +130,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <button
               type="button"
               onClick={handleClear}
-              className="p-1 rounded-full text-muted hover:text-charcoal hover:bg-border/50 transition-colors shrink-0 ml-1"
+              className="p-1 rounded-full text-muted hover:text-charcoal hover:bg-border/50 transition-colors shrink-0 ml-1 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -146,7 +147,11 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               key={term}
               type="button"
               onClick={() => handleSelectSuggestion(term)}
-              className="px-3 py-1 bg-parchment hover:bg-chiseled border border-border/80 rounded-full text-charcoal/90 text-xs font-medium transition-colors shrink-0 cursor-pointer"
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors shrink-0 cursor-pointer ${
+                query.toLowerCase() === term.toLowerCase()
+                  ? 'bg-lapis text-parchment font-semibold shadow-xs'
+                  : 'bg-parchment hover:bg-chiseled border border-border/80 text-charcoal/90'
+              }`}
             >
               {term}
             </button>
@@ -161,12 +166,12 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 <Search className="w-6 h-6" />
               </div>
               <p className="text-xs text-muted">
-                Type keywords like <strong className="text-charcoal font-semibold">"Multani"</strong>,{' '}
-                <strong className="text-charcoal font-semibold">"Swati"</strong>, or{' '}
-                <strong className="text-charcoal font-semibold">"Truck Art"</strong> to discover authentic crafts.
+                Type keywords like <strong className="text-charcoal font-semibold">"Truck Art"</strong>,{' '}
+                <strong className="text-charcoal font-semibold">"Multan"</strong>, or{' '}
+                <strong className="text-charcoal font-semibold">"Swati"</strong> to discover authentic crafts.
               </p>
             </div>
-          ) : isLoading && results.length === 0 ? (
+          ) : isLoading ? (
             <div className="py-12 text-center space-y-2">
               <Loader2 className="w-8 h-8 text-lapis animate-spin mx-auto" />
               <p className="text-xs text-muted">Searching Ghazali archival database...</p>
@@ -208,12 +213,20 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       <h4 className="font-serif text-xs sm:text-sm font-semibold text-charcoal group-hover:text-lapis transition-colors truncate">
                         {product.name}
                       </h4>
-                      {product.size && (
-                        <div className="inline-flex items-center gap-1 text-[10px] text-muted font-mono bg-parchment px-1.5 py-0.5 rounded border border-border/60">
-                          <Tag className="w-2.5 h-2.5 text-brass" />
-                          <span>{product.size} inches</span>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {product.size && (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-muted font-mono bg-parchment px-1.5 py-0.5 rounded border border-border/60">
+                            <Tag className="w-2.5 h-2.5 text-brass" />
+                            <span>{product.size}</span>
+                          </span>
+                        )}
+                        {product.weight && product.weight > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-muted font-mono bg-parchment px-1.5 py-0.5 rounded border border-border/60">
+                            <Scale className="w-2.5 h-2.5 text-lapis" />
+                            <span>{product.weight}g</span>
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs font-bold text-terracotta font-sans">
                         Rs. {product.price?.toLocaleString()} PKR
                       </p>
@@ -226,7 +239,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         </div>
 
         {/* Modal Footer Bar */}
-        {query.trim() && (
+        {query.trim() && !isLoading && (
           <div className="p-3 bg-sandstone border-t border-border flex items-center justify-between gap-3 text-xs">
             <span className="text-muted text-[11px] hidden sm:inline">
               Found <strong className="text-charcoal font-bold">{results.length}</strong> matching items
@@ -237,7 +250,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               onClick={() => handleViewAll()}
               className="ml-auto px-4 py-2 bg-lapis hover:bg-lapis/90 text-parchment rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span>View All Results</span>
+              <span>View All Results ({results.length})</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
