@@ -3,7 +3,17 @@
 import React from 'react';
 import { PackageCheck, ShieldCheck, Truck, CheckCircle2 } from 'lucide-react';
 
-export function CratingGuaranteeSection() {
+export interface CratingGuaranteeSectionConfig {
+  title?: string;
+  subtitle?: string;
+}
+
+export function CratingGuaranteeSection({ config }: { config?: CratingGuaranteeSectionConfig }) {
+  const mainTitle = config?.title || 'The Ghazali Fragile Crating Guarantee';
+  const subtitle =
+    config?.subtitle ||
+    'We understand the fragility of fired clay glazes, carved walnut, and Himalayan salt crystals. That is why our transit process is museum-grade.';
+
   return (
     <section className="w-full py-space-xl px-margin-mobile md:px-margin-tablet lg:px-margin bg-surface">
       <div className="max-w-7xl mx-auto space-y-space-lg">
@@ -13,10 +23,10 @@ export function CratingGuaranteeSection() {
             Uncompromising Transit Assurance
           </span>
           <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface">
-            The Ghazali Fragile Crating Guarantee
+            {mainTitle}
           </h2>
           <p className="font-serif text-xs sm:text-sm text-on-surface-variant">
-            We understand the fragility of fired clay glazes, carved walnut, and Himalayan salt crystals. That is why our transit process is museum-grade.
+            {subtitle}
           </p>
         </div>
 

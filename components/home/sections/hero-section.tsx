@@ -7,25 +7,42 @@ import { ArrowRight, ShieldCheck, Banknote, Award } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 export interface HeroSectionConfig {
+  badge?: string;
+  badgeText?: string;
   title?: string;
   subtitle?: string;
-  badgeText?: string;
+  primaryCtaText?: string;
+  primaryCtaLink?: string;
   primaryCta?: { label: string; url: string };
+  secondaryCtaText?: string;
+  secondaryCtaLink?: string;
   secondaryCta?: { label: string; url: string };
   image?: string;
+  collectorHighlight?: string;
+  collectorNumber?: string;
 }
 
 export function HeroSection({ config }: { config?: HeroSectionConfig }) {
   const badgeText =
-    config?.badgeText || 'Authentic Artisanal Roots — Multan • Swat • Sillanwali • Khewra';
+    config?.badge ||
+    config?.badgeText ||
+    'Authentic Artisanal Roots — Multan • Swat • Sillanwali • Khewra';
   const mainTitle = config?.title || 'Timeless Pakistani Heritage,';
   const subtitle =
     config?.subtitle ||
     'Sourced directly from generational Ustads without intermediate dilution. From hand-thrown Multani cobalt glazes and intricate Swati walnut relief panels to hand-turned Taxila marble and antique brassware—safely double-crated and brought straight to your doorstep across Pakistan.';
-  const primaryCta = config?.primaryCta || { label: 'Explore Masterpiece Catalog', url: '/products' };
+  const primaryText = config?.primaryCtaText || config?.primaryCta?.label || 'Explore Masterpiece Catalog';
+  const primaryLink = config?.primaryCtaLink || config?.primaryCta?.url || '/products';
+  const secondaryText = config?.secondaryCtaText || config?.secondaryCta?.label || 'Order via WhatsApp Concierge';
+  const secondaryLink =
+    config?.secondaryCtaLink ||
+    config?.secondaryCta?.url ||
+    'https://wa.me/923104755973?text=Hello%20Ghazali%20Handicrafts%2C%20I%20would%20like%20to%20inquire%20about%20your%20artisanal%20masterpieces.';
   const imageUrl =
     config?.image ||
     'https://lh3.googleusercontent.com/aida-public/AB6AXuBULERIYP1iPVOnmmAD_IkDmEpdUYlVKFT33WKFA0whp7gkZt7_IEytTCkyBjiw3Pf5gSzSvxA9zJfINHQrKTnf2ZyTfKdVxER4GsWbsCDJ6M_6BiKJ4mOzZLV_D45b3_kwI9I4My6FtxuuXl1H-1kMGspje9ha9WYV8Je9-gc2unC2LSccXH64zhRltv37kpygVmmoAeYezVvH82uLuW-PPR4UkuM6W6BMXZNYcbg4OAD5TN4knGJ_';
+  const collectorHighlight = config?.collectorHighlight || 'Multani Lapis Urn & Walnut Mount';
+  const collectorNumber = config?.collectorNumber || '№ 1976/08';
 
   return (
     <section className="relative w-full overflow-hidden px-margin-mobile md:px-margin-tablet lg:px-margin py-space-lg lg:py-space-xl bg-surface">
@@ -55,21 +72,21 @@ export function HeroSection({ config }: { config?: HeroSectionConfig }) {
           {/* CTA Row */}
           <div className="flex flex-wrap items-center gap-space-sm pt-space-xs w-full sm:w-auto">
             <Link
-              href={primaryCta.url}
+              href={primaryLink}
               className="inline-flex items-center justify-center gap-space-xs px-space-lg py-3.5 rounded-lg bg-[#00405C] hover:bg-[#003248] text-white transition-all duration-300 font-label-lg text-label-lg shadow-md group cursor-pointer"
             >
-              <span>{primaryCta.label}</span>
+              <span>{primaryText}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <a
-              href="https://wa.me/923104755973?text=Hello%20Ghazali%20Handicrafts%2C%20I%20would%20like%20to%20inquire%20about%20your%20artisanal%20masterpieces."
+              href={secondaryLink}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-space-xs px-space-lg py-3.5 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-variant transition-all duration-200 font-label-lg text-label-lg shadow-xs border border-surface-container-highest cursor-pointer"
             >
               <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
-              <span>Order via WhatsApp Concierge</span>
+              <span>{secondaryText}</span>
             </a>
           </div>
 
@@ -97,7 +114,7 @@ export function HeroSection({ config }: { config?: HeroSectionConfig }) {
           <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden shadow-xl bg-surface-container-high group border border-surface-container-highest">
             <Image
               src={imageUrl}
-              alt="Curated Pakistani artisanal still-life arrangement featuring Multani blue pottery urn and Swati carved walnut panel"
+              alt="Curated Pakistani artisanal still-life arrangement"
               fill
               priority
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -112,11 +129,11 @@ export function HeroSection({ config }: { config?: HeroSectionConfig }) {
                   Collector Highlight
                 </span>
                 <span className="font-headline-sm text-headline-sm text-on-surface">
-                  Multani Lapis Urn & Walnut Mount
+                  {collectorHighlight}
                 </span>
               </div>
               <span className="font-label-md text-label-md text-on-surface-variant font-mono">
-                № 1976/08
+                {collectorNumber}
               </span>
             </div>
 

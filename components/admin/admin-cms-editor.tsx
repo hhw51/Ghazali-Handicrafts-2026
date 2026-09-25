@@ -1,41 +1,98 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   HomepageSectionRecord,
   saveHomepageSection,
-  deleteHomepageSection,
-  updateSectionsOrder,
+  batchUpsertCmsSections,
+  uploadCmsImage,
 } from '@/actions/admin-cms';
 import {
-  Plus,
-  ArrowUp,
-  ArrowDown,
-  Trash2,
   Save,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
+  Upload,
   LayoutTemplate,
   Grid,
   ShoppingBag,
-  Image as ImageIcon,
+  Sparkles,
+  BookOpen,
+  ShieldCheck,
+  Award,
   Eye,
   EyeOff,
   RefreshCw,
-  BookOpen,
-  Award,
-  ShieldCheck,
-  Layers,
+  Video,
+  Bell,
+  Gift,
 } from 'lucide-react';
 
 interface AdminCmsEditorProps {
   initialSections: HomepageSectionRecord[];
 }
 
+const SECTION_KEYS = [
+  { id: 'announcement_bar', label: 'Announcement & Ticker Bar', icon: Bell },
+  { id: 'hero', label: 'Hero Magazine Banner', icon: LayoutTemplate },
+  { id: 'regions_mastery', label: 'Regional Craft Hubs', icon: Grid },
+  { id: 'featured_masterpieces', label: 'Featured Masterpieces Showcase', icon: ShoppingBag },
+  { id: 'heritage_50_years', label: '50-Year Heritage & Mini-Doc', icon: BookOpen },
+  { id: 'fragile_guarantee', label: 'Fragile Crating Guarantee', icon: ShieldCheck },
+  { id: 'lifestyle_gifting', label: 'Lifestyle & Heritage Gifting', icon: Gift },
+];
+
 export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
-  const [sections, setSections] = useState<HomepageSectionRecord[]>(initialSections);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+  // Convert list to state map by section_type
+  const buildInitialState = () => {
+    const map: Record<string, Partial<HomepageSectionRecord>> = {};
+    
+    // Seed defaults
+    SECTION_KEYS.forEach((sk, idx) => {
+      map[sk.id] = {
+        section_type: sk.id,
+        position: idx,
+        is_active: true,
+        settings: {},
+        config: {},
+      };
+    });
+
+    // Populate from database records
+    initialSections.forEach((sec) => {
+      const typeKey = sec.section_type;
+      const settings = sec.settings || sec.config || {};
+      map[typeKey] = {
+        ...sec,
+        settings: settings,
+        config: settings,
+      };
+
+      // Handle legacy key aliases
+      if (typeKey === 'regions' || typeKey === 'category_grid') {
+        map['regions_mastery'] = { ...sec, section_type: 'regions_mastery', settings };
+      }
+      if (typeKey === 'product_showcase' || typeKey === 'product_grid') {
+        map['featured_masterpieces'] = { ...sec, section_type: 'featured_masterpieces', settings };
+      }
+      if (typeKey === 'heritage_spotlight' || typeKey === 'heritage_story') {
+        map['heritage_50_years'] = { ...sec, section_type: 'heritage_50_years', settings };
+      }
+      if (typeKey === 'trust_bar' || typeKey === 'crating_guarantee') {
+        map['fragile_guarantee'] = { ...sec, section_type: 'fragile_guarantee', settings };
+      }
+      if (typeKey === 'editorial_banner' || typeKey === 'banner') {
+        map['lifestyle_gifting'] = { ...sec, section_type: 'lifestyle_gifting', settings };
+      }
+    });
+
+    return map;
+  };
+
+  const [cmsState, setCmsState] = useState(buildInitialState());
+  const [activeTab, setActiveTab] = useState('hero');
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [isPublishingAll, setIsPublishingAll] = useState(false);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [toast, setToast] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
@@ -43,159 +100,97 @@ export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const handleAddBlock = (
-    type:
-      | 'hero'
-      | 'category_grid'
-      | 'product_showcase'
-      | 'editorial_banner'
-      | 'heritage_story'
-      | 'trust_bar'
-      | 'artisan_spotlight'
+  const handleUpdateSetting = (sectionType: string, key: string, value: any) => {
+    setCmsState((prev) => {
+      const existing = prev[sectionType] || {
+        section_type: sectionType,
+        position: 0,
+        is_active: true,
+        settings: {},
+      };
+      const updatedSettings = {
+        ...(existing.settings || existing.config || {}),
+        [key]: value,
+      };
+      return {
+        ...prev,
+        [sectionType]: {
+          ...existing,
+          settings: updatedSettings,
+          config: updatedSettings,
+        },
+      };
+    });
+  };
+
+  const handleToggleActive = (sectionType: string) => {
+    setCmsState((prev) => {
+      const existing = prev[sectionType] || {
+        section_type: sectionType,
+        position: 0,
+        is_active: true,
+        settings: {},
+      };
+      return {
+        ...prev,
+        [sectionType]: {
+          ...existing,
+          is_active: !existing.is_active,
+        },
+      };
+    });
+  };
+
+  const handleImageFileUpload = async (
+    sectionType: string,
+    settingKey: string,
+    file: File
   ) => {
-    const defaultConfig: Record<string, any> = {
-      hero: {
-        title: 'Authentic Heritage Handicrafts of Pakistan',
-        subtitle: 'Hand-carved Swati walnut, Multani glazed ceramics & Rawalpindi truck art.',
-        badgeText: '100% Authentic Pakistani Craft Lineage',
-        primaryCta: { label: 'Explore Heritage Catalog', url: '/products' },
-        secondaryCta: { label: 'Explore Collections', url: '/products' },
-        images: ['/images/hero/craft-hero.png', '/images/collections/blue-pottery.png'],
-        layoutStyle: 'split',
-      },
-      category_grid: {
-        headline: 'Explore Craft Lineages by Region',
-        subheadline: 'Discover centuries of master craftsmanship, from Multan kilns to Swati carving benches.',
-        categories: [
-          { name: 'Multani Blue Pottery', slug: 'blue-pottery', image: '/images/collections/blue-pottery.png', itemCount: 14, badge: 'Multan' },
-          { name: 'Swati Carved Woodwork', slug: 'swati-woodwork', image: '/images/collections/swati-woodwork.png', itemCount: 9, badge: 'Swat Valley' },
-          { name: 'Himalayan Marble & Onyx', slug: 'marble-onyx', image: '/images/hero/craft-hero.png', itemCount: 12, badge: 'Balochistan' },
-        ],
-      },
-      product_showcase: {
-        headline: 'Curated Masterpiece Showcase',
-        viewAllUrl: '/products',
-        filterMode: 'featured',
-        limit: 8,
-      },
-      editorial_banner: {
-        headline: 'Nationwide Express Cash on Delivery',
-        description: 'Fragile crate protection & instant WhatsApp verification included.',
-        bannerImage: '/images/hero/craft-hero.png',
-        ctaText: 'Shop Heritage Collection',
-        ctaLink: '/products',
-        alignment: 'left',
-      },
-      heritage_story: {
-        regionName: 'Multan & Swat Valley',
-        title: 'Generational Lineage of Master Artisans',
-        storyText: 'In the historic workshops of Multan and Swat, master artisans pass down centuries-old secrets of glaze mixing and walnut carving.',
-        quote: 'Clay and walnut wood are not merely raw materials; they carry the soul of our ancestral heritage.',
-        artisanImage: '/images/collections/blue-pottery.png',
-      },
-      trust_bar: {
-        items: [
-          { icon: 'truck', title: '100% Cash on Delivery', subtitle: 'Pay upon delivery at your doorstep across all Pakistan cities.' },
-          { icon: 'shield', title: 'Fragile-Crate Protection', subtitle: 'Custom shock-absorbing wooden packaging for safe arrival.' },
-          { icon: 'award', title: 'Authentic Craft Lineage', subtitle: 'Directly sourced from master artisans in Multan, Swat & Chiniot.' },
-          { icon: 'heart', title: 'Fair Artisan Sourcing', subtitle: 'Empowering traditional craft families with direct fair wages.' },
-        ],
-      },
-      artisan_spotlight: {
-        artisanName: 'Ustad Ghulam Mohammad',
-        craftType: 'Swati Walnut Wood Carver',
-        region: 'Swat Valley, KP',
-        bio: 'With over 40 years of dedication to ancestral relief carving, Ustad Ghulam shapes solid walnut wood using hand-forged steel chisels.',
-        image: '/images/collections/swati-woodwork.png',
-        featuredProductSlug: 'swati-woodwork',
-      },
-    }[type];
+    const fieldId = `${sectionType}_${settingKey}`;
+    setUploadingField(fieldId);
+    const formData = new FormData();
+    formData.append('file', file);
 
-    const newSec: HomepageSectionRecord = {
-      id: `temp_${Date.now()}`,
-      section_type: type,
-      position: sections.length,
-      is_active: true,
-      settings: defaultConfig,
-      config: defaultConfig,
-    };
+    const res = await uploadCmsImage(formData);
+    setUploadingField(null);
 
-    setSections((prev) => [...prev, newSec]);
-  };
-
-  const handleUpdateConfig = (id: string, key: string, val: any) => {
-    setSections((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              settings: { ...(s.settings || s.config || {}), [key]: val },
-              config: { ...(s.config || s.settings || {}), [key]: val },
-            }
-          : s
-      )
-    );
-  };
-
-  const handleToggleActive = async (sec: HomepageSectionRecord) => {
-    const updatedState = !sec.is_active;
-    setSections((prev) =>
-      prev.map((s) => (s.id === sec.id ? { ...s, is_active: updatedState } : s))
-    );
-
-    if (!sec.id.startsWith('temp_')) {
-      await saveHomepageSection({ ...sec, is_active: updatedState });
-      showToast(
-        `✓ Section ${updatedState ? 'activated' : 'hidden'} on storefront homepage.`
-      );
+    if (res.success && res.url) {
+      handleUpdateSetting(sectionType, settingKey, res.url);
+      showToast('✓ Image uploaded to Supabase Storage!');
+    } else {
+      showToast(res.error || 'Failed to upload image.', 'error');
     }
   };
 
-  const handleMove = async (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= sections.length) return;
-
-    const copy = [...sections];
-    const temp = copy[index];
-    copy[index] = copy[newIndex];
-    copy[newIndex] = temp;
-
-    const reordered = copy.map((item, idx) => ({ ...item, position: idx }));
-    setSections(reordered);
-
-    const serverPayload = reordered
-      .filter((s) => !s.id.startsWith('temp_'))
-      .map((s) => ({ id: s.id, position: s.position }));
-
-    if (serverPayload.length > 0) {
-      await updateSectionsOrder(serverPayload);
-    }
-  };
-
-  const handleSaveSection = async (sec: HomepageSectionRecord) => {
-    setLoadingId(sec.id);
-    const res = await saveHomepageSection(sec);
-    setLoadingId(null);
+  const handleSaveSection = async (sectionType: string) => {
+    setSavingKey(sectionType);
+    const sec = cmsState[sectionType];
+    const res = await saveHomepageSection({
+      ...sec,
+      section_type: sectionType,
+    });
+    setSavingKey(null);
 
     if (res.success) {
-      if (res.id && sec.id.startsWith('temp_')) {
-        setSections((prev) =>
-          prev.map((s) => (s.id === sec.id ? { ...s, id: res.id! } : s))
-        );
-      }
-      showToast('✓ Homepage section saved and published!');
+      showToast(`✓ Published ${sectionType.replace(/_/g, ' ')} configuration!`);
     } else {
       showToast(res.error || 'Failed to save section', 'error');
     }
   };
 
-  const handleDelete = async (sec: HomepageSectionRecord) => {
-    if (!confirm('Are you sure you want to remove this homepage block?')) return;
+  const handlePublishAll = async () => {
+    setIsPublishingAll(true);
+    const payload = Object.values(cmsState).map((sec, idx) => ({
+      ...sec,
+      position: idx,
+    }));
+    const res = await batchUpsertCmsSections(payload);
+    setIsPublishingAll(false);
 
-    setSections((prev) => prev.filter((s) => s.id !== sec.id));
-    if (!sec.id.startsWith('temp_')) {
-      await deleteHomepageSection(sec.id);
-      showToast('Section removed from homepage.');
+    if (res.success) {
+      showToast('🚀 All Homepage sections saved and published live to storefront!');
+    } else {
+      showToast(res.error || 'Failed to publish all sections', 'error');
     }
   };
 
@@ -219,323 +214,563 @@ export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
         </div>
       )}
 
-      {/* Add Block Toolbar */}
-      <div className="p-5 bg-sandstone rounded-xl border border-border space-y-3 shadow-craft-sm">
-        <label className="font-serif font-bold text-charcoal text-sm flex items-center gap-2">
-          <Plus className="w-4 h-4 text-lapis" /> Add Homepage Section Block
-        </label>
-        <div className="flex flex-wrap gap-2.5">
-          <button
-            type="button"
-            onClick={() => handleAddBlock('hero')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <LayoutTemplate className="w-3.5 h-3.5 text-lapis" /> Hero Banner
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddBlock('category_grid')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <Grid className="w-3.5 h-3.5 text-brass" /> Category Visual Grid
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddBlock('product_showcase')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <ShoppingBag className="w-3.5 h-3.5 text-terracotta" /> Product Showcase Grid
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddBlock('editorial_banner')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-700" /> Editorial Banner
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddBlock('heritage_story')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-lapis" /> Heritage Story Editorial
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddBlock('trust_bar')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" /> Trust Bar
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddBlock('artisan_spotlight')}
-            className="px-3.5 py-2 bg-parchment hover:bg-chiseled border border-border text-charcoal text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <Award className="w-3.5 h-3.5 text-brass" /> Artisan Spotlight
-          </button>
-        </div>
-      </div>
-
-      {/* Sections List */}
-      {sections.length === 0 ? (
-        <div className="p-12 bg-sandstone rounded-xl border border-border text-center space-y-2">
-          <p className="font-serif text-lg font-bold text-charcoal">No custom homepage sections added yet</p>
+      {/* Action Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-sandstone rounded-xl border border-border shadow-craft-sm">
+        <div>
+          <h2 className="font-serif font-bold text-charcoal text-lg">Homepage CMS Dashboard</h2>
           <p className="text-xs text-muted">
-            Click any button above to add modular blocks (Hero, Category Grid, Product Showcase, Editorial Banners, etc.).
+            Configure headline copy, narrative text, call-to-actions, and storage imagery across every storefront section.
           </p>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {sections.map((sec, idx) => {
-            const config = sec.settings || sec.config || {};
+        <button
+          type="button"
+          onClick={handlePublishAll}
+          disabled={isPublishingAll}
+          className="px-5 py-2.5 bg-[#00405C] hover:bg-[#003248] text-white rounded-lg font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+        >
+          {isPublishingAll ? (
+            <RefreshCw className="w-4 h-4 animate-spin text-[#C5A880]" />
+          ) : (
+            <Save className="w-4 h-4 text-[#C5A880]" />
+          )}
+          <span>Publish All Sections Live</span>
+        </button>
+      </div>
+
+      {/* Tabs Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Navigation Sidebar Tabs (Cols 1-4) */}
+        <div className="lg:col-span-4 space-y-2">
+          {SECTION_KEYS.map((sk) => {
+            const Icon = sk.icon;
+            const isActive = activeTab === sk.id;
+            const secData = cmsState[sk.id];
+            const isSectionActive = secData?.is_active !== false;
 
             return (
-              <div
-                key={sec.id}
-                className={`p-6 rounded-2xl border-2 transition-all space-y-4 ${
-                  sec.is_active
-                    ? 'bg-parchment border-border shadow-craft-sm'
-                    : 'bg-sandstone/50 border-border/60 opacity-60'
+              <button
+                key={sk.id}
+                type="button"
+                onClick={() => setActiveTab(sk.id)}
+                className={`w-full text-left px-4 py-3 rounded-xl font-semibold text-xs transition-all flex items-center justify-between border cursor-pointer ${
+                  isActive
+                    ? 'bg-[#00405C] text-white border-[#00405C] shadow-sm'
+                    : 'bg-parchment text-charcoal hover:bg-sandstone border-border'
                 }`}
               >
-                {/* Header Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-lapis text-parchment font-mono text-xs font-bold flex items-center justify-center">
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <h3 className="font-serif font-bold text-charcoal text-base capitalize flex items-center gap-2">
-                        {sec.section_type.replace('_', ' ')} Block
-                        {sec.id.startsWith('temp_') && (
-                          <span className="text-[10px] bg-brass/20 text-terracotta px-2 py-0.5 rounded font-mono">
-                            New Draft
-                          </span>
-                        )}
-                      </h3>
-                    </div>
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#C5A880]' : 'text-lapis'}`} />
+                  <span>{sk.label}</span>
+                </div>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isSectionActive ? 'bg-[#25D366]' : 'bg-stone-400'
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Section Config Panel (Cols 5-12) */}
+        <div className="lg:col-span-8 bg-parchment p-6 rounded-2xl border border-border shadow-craft-sm space-y-6">
+          {SECTION_KEYS.map((sk) => {
+            if (activeTab !== sk.id) return null;
+
+            const sec = cmsState[sk.id] || { settings: {} };
+            const settings = sec.settings || sec.config || {};
+            const isSectionActive = sec.is_active !== false;
+
+            return (
+              <div key={sk.id} className="space-y-6">
+                {/* Header & Controls */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
+                  <div className="flex items-center gap-2.5">
+                    <sk.icon className="w-5 h-5 text-lapis" />
+                    <h3 className="font-serif font-bold text-charcoal text-lg">{sk.label}</h3>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Re-order Up/Down */}
                     <button
                       type="button"
-                      onClick={() => handleMove(idx, 'up')}
-                      disabled={idx === 0}
-                      className="p-1.5 bg-sandstone hover:bg-chiseled border border-border rounded-md text-charcoal disabled:opacity-30 cursor-pointer"
-                      title="Move Up"
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMove(idx, 'down')}
-                      disabled={idx === sections.length - 1}
-                      className="p-1.5 bg-sandstone hover:bg-chiseled border border-border rounded-md text-charcoal disabled:opacity-30 cursor-pointer"
-                      title="Move Down"
-                    >
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Active Toggle Switch */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleActive(sec)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                        sec.is_active
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : 'bg-sandstone text-muted border border-border'
+                      onClick={() => handleToggleActive(sk.id)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                        isSectionActive
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : 'bg-sandstone text-muted border-border'
                       }`}
                     >
-                      {sec.is_active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      <span>{sec.is_active ? 'Active' : 'Hidden'}</span>
+                      {isSectionActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      <span>{isSectionActive ? 'Section Visible' : 'Section Hidden'}</span>
                     </button>
 
-                    {/* Save Button */}
                     <button
                       type="button"
-                      onClick={() => handleSaveSection(sec)}
-                      disabled={loadingId === sec.id}
-                      className="px-3.5 py-1.5 bg-lapis hover:bg-lapis/90 text-parchment rounded-md text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      onClick={() => handleSaveSection(sk.id)}
+                      disabled={savingKey === sk.id}
+                      className="px-4 py-1.5 bg-[#00405C] hover:bg-[#003248] text-white rounded-md text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
-                      {loadingId === sec.id ? (
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-brass" />
+                      {savingKey === sk.id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#C5A880]" />
                       ) : (
-                        <Save className="w-3.5 h-3.5 text-brass" />
+                        <Save className="w-3.5 h-3.5 text-[#C5A880]" />
                       )}
-                      <span>Save</span>
-                    </button>
-
-                    {/* Delete Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(sec)}
-                      className="p-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-md transition-colors cursor-pointer"
-                      title="Delete Block"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Save Section</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Config Form Fields based on section_type */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
-                  {sec.section_type === 'hero' && (
-                    <>
-                      <div className="space-y-1 sm:col-span-2">
-                        <label className="font-semibold text-charcoal">Hero Heading Title</label>
-                        <input
-                          type="text"
-                          value={config.title || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'title', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                      <div className="space-y-1 sm:col-span-2">
-                        <label className="font-semibold text-charcoal">Subtitle Description</label>
-                        <input
-                          type="text"
-                          value={config.subtitle || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'subtitle', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Badge Text</label>
-                        <input
-                          type="text"
-                          value={config.badgeText || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'badgeText', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                    </>
-                  )}
+                {/* FORM FIELDS BASED ON ACTIVE SECTION */}
+                
+                {/* 1. Announcement Bar */}
+                {sk.id === 'announcement_bar' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">
+                        Top Notification Text (Announcement Bar)
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          settings.text ||
+                          'Nationwide Cash on Delivery | Double-Crated Fragile Protection | Free Shipping Above Rs. 10,000'
+                        }
+                        onChange={(e) => handleUpdateSetting(sk.id, 'text', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-medium"
+                      />
+                    </div>
 
-                  {sec.section_type === 'category_grid' && (
-                    <>
-                      <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Headline</label>
-                        <input
-                          type="text"
-                          value={config.headline || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'headline', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Subheadline</label>
-                        <input
-                          type="text"
-                          value={config.subheadline || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'subheadline', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                    </>
-                  )}
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">
+                        Secondary Marquee / Ticker Message
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.ticker || 'Archival Craftsmanship Since 1974'}
+                        onChange={(e) => handleUpdateSetting(sk.id, 'ticker', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-medium"
+                      />
+                    </div>
+                  </div>
+                )}
 
-                  {sec.section_type === 'product_showcase' && (
-                    <>
+                {/* 2. Hero Section */}
+                {sk.id === 'hero' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Showcase Headline</label>
+                        <label className="font-semibold text-charcoal block">Eyebrow Badge Text</label>
                         <input
                           type="text"
-                          value={config.headline || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'headline', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
+                          value={
+                            settings.badge ||
+                            settings.badgeText ||
+                            'Authentic Artisanal Roots — Multan • Swat • Sillanwali • Khewra'
+                          }
+                          onChange={(e) => handleUpdateSetting(sk.id, 'badge', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Filter Mode</label>
-                        <select
-                          value={config.filterMode || 'featured'}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'filterMode', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal cursor-pointer"
-                        >
-                          <option value="featured">Featured Products Only</option>
-                          <option value="category">Category Specific</option>
-                          <option value="new_arrivals">New Arrivals</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
 
-                  {sec.section_type === 'editorial_banner' && (
-                    <>
-                      <div className="space-y-1 sm:col-span-2">
-                        <label className="font-semibold text-charcoal">Banner Headline</label>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Main Title Prefix</label>
                         <input
                           type="text"
-                          value={config.headline || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'headline', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
+                          value={settings.title || 'Timeless Pakistani Heritage,'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'title', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
                         />
                       </div>
-                      <div className="space-y-1 sm:col-span-2">
-                        <label className="font-semibold text-charcoal">Description</label>
-                        <input
-                          type="text"
-                          value={config.description || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'description', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                    </>
-                  )}
+                    </div>
 
-                  {sec.section_type === 'heritage_story' && (
-                    <>
-                      <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Region Name</label>
-                        <input
-                          type="text"
-                          value={config.regionName || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'regionName', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Story Title</label>
-                        <input
-                          type="text"
-                          value={config.title || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'title', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
-                        />
-                      </div>
-                    </>
-                  )}
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Subtitle Narrative Copy</label>
+                      <textarea
+                        rows={3}
+                        value={
+                          settings.subtitle ||
+                          'Sourced directly from generational Ustads without intermediate dilution. From hand-thrown Multani cobalt glazes and intricate Swati walnut relief panels to hand-turned Taxila marble and antique brassware—safely double-crated and brought straight to your doorstep across Pakistan.'
+                        }
+                        onChange={(e) => handleUpdateSetting(sk.id, 'subtitle', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal leading-relaxed"
+                      />
+                    </div>
 
-                  {sec.section_type === 'artisan_spotlight' && (
-                    <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Artisan Name</label>
+                        <label className="font-semibold text-charcoal block">Primary CTA Text</label>
                         <input
                           type="text"
-                          value={config.artisanName || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'artisanName', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
+                          value={settings.primaryCtaText || settings.primaryCta?.label || 'Explore Masterpiece Catalog'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'primaryCtaText', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Primary CTA Link URL</label>
+                        <input
+                          type="text"
+                          value={settings.primaryCtaLink || settings.primaryCta?.url || '/products'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'primaryCtaLink', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Secondary CTA Text</label>
+                        <input
+                          type="text"
+                          value={settings.secondaryCtaText || settings.secondaryCta?.label || 'Order via WhatsApp Concierge'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'secondaryCtaText', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Secondary CTA WhatsApp Link</label>
+                        <input
+                          type="text"
+                          value={
+                            settings.secondaryCtaLink ||
+                            settings.secondaryCta?.url ||
+                            'https://wa.me/923104755973'
+                          }
+                          onChange={(e) => handleUpdateSetting(sk.id, 'secondaryCtaLink', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Image Uploader */}
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <label className="font-semibold text-charcoal block">Hero Showcase Image (URL or Storage Upload)</label>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="text"
+                          value={settings.image || ''}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'image', e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono text-[11px]"
+                        />
+                        <label className="px-3 py-2 bg-chiseled hover:bg-border border border-border rounded-lg text-charcoal text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0">
+                          {uploadingField === 'hero_image' ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-lapis" />
+                          ) : (
+                            <Upload className="w-3.5 h-3.5 text-lapis" />
+                          )}
+                          <span>Upload File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageFileUpload(sk.id, 'image', file);
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Collector Highlight Title</label>
+                        <input
+                          type="text"
+                          value={settings.collectorHighlight || 'Multani Lapis Urn & Walnut Mount'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'collectorHighlight', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Collector Archival Number</label>
+                        <input
+                          type="text"
+                          value={settings.collectorNumber || '№ 1976/08'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'collectorNumber', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Regional Craft Hubs */}
+                {sk.id === 'regions_mastery' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Section Headline</label>
+                      <input
+                        type="text"
+                        value={settings.headline || 'Discover Crafts by Origin'}
+                        onChange={(e) => handleUpdateSetting(sk.id, 'headline', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Section Subheadline</label>
+                      <input
+                        type="text"
+                        value={
+                          settings.subheadline ||
+                          "Centuries of generational mastery across Pakistan's historic artisan valleys, curated with archival reverence."
+                        }
+                        onChange={(e) => handleUpdateSetting(sk.id, 'subheadline', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Featured Masterpieces */}
+                {sk.id === 'featured_masterpieces' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Section Headline</label>
+                      <input
+                        type="text"
+                        value={settings.headline || 'Featured Artisanal Masterpieces'}
+                        onChange={(e) => handleUpdateSetting(sk.id, 'headline', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Display Product Limit</label>
+                      <input
+                        type="number"
+                        value={settings.limit || 8}
+                        onChange={(e) => handleUpdateSetting(sk.id, 'limit', parseInt(e.target.value, 10) || 8)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. 50-Year Heritage Spotlight */}
+                {sk.id === 'heritage_50_years' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Provenance Badge</label>
+                        <input
+                          type="text"
+                          value={settings.badge || 'ESTABLISHED 1976 • 50 YEARS AT THE SAME HISTORIC SHOP'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'badge', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-charcoal">Craft Type & Region</label>
+                        <label className="font-semibold text-charcoal block">Section Headline</label>
                         <input
                           type="text"
-                          value={config.craftType || ''}
-                          onChange={(e) => handleUpdateConfig(sec.id, 'craftType', e.target.value)}
-                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-md text-charcoal"
+                          value={settings.title || "Half a Century of Preserving Pakistan's Living Craft"}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'title', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
                         />
                       </div>
-                    </>
-                  )}
-                </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Subtitle</label>
+                      <input
+                        type="text"
+                        value={
+                          settings.subtitle ||
+                          'From our original flagship shop in Lahore to master artisan workshops across Swat, Multan, and Sillanwali.'
+                        }
+                        onChange={(e) => handleUpdateSetting(sk.id, 'subtitle', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">150-200 Word Historical Narrative</label>
+                      <textarea
+                        rows={4}
+                        value={
+                          settings.narrative ||
+                          'In 1976, Ghazali Handicrafts opened its doors with a simple pledge: to provide an enduring sanctuary for master Pakistani Ustads whose craft was being eclipsed by factory reproductions. Fifty uninterrupted years later, operating from the very same historic shop address in Lahore, we continue our lifelong guardianship of genuine Sheesham joinery, Kashigari tile glazes, and hand-beaten Peshawar brassware.'
+                        }
+                        onChange={(e) => handleUpdateSetting(sk.id, 'narrative', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal leading-relaxed"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Founder's Pull Quote</label>
+                        <input
+                          type="text"
+                          value={
+                            settings.quote ||
+                            '“For 50 years, this shop has not just sold decorative pieces; we have guarded the dignity and generational survival of our country\'s master craftsmen.”'
+                          }
+                          onChange={(e) => handleUpdateSetting(sk.id, 'quote', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal italic"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Quote Citation Author</label>
+                        <input
+                          type="text"
+                          value={settings.quoteAuthor || 'Founder & Senior Conservator, Ghazali Handicrafts'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'quoteAuthor', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Video Embed Link / URL (YouTube or MP4)</label>
+                      <input
+                        type="text"
+                        value={settings.videoUrl || ''}
+                        onChange={(e) => handleUpdateSetting(sk.id, 'videoUrl', e.target.value)}
+                        placeholder="https://www.youtube.com/embed/..."
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <label className="font-semibold text-charcoal block">Video Poster Image (Storage Uploader)</label>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="text"
+                          value={settings.videoPoster || ''}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'videoPoster', e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono text-[11px]"
+                        />
+                        <label className="px-3 py-2 bg-chiseled hover:bg-border border border-border rounded-lg text-charcoal text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0">
+                          {uploadingField === 'heritage_50_years_videoPoster' ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-lapis" />
+                          ) : (
+                            <Upload className="w-3.5 h-3.5 text-lapis" />
+                          )}
+                          <span>Upload Poster</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageFileUpload(sk.id, 'videoPoster', file);
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. Fragile Crating Guarantee */}
+                {sk.id === 'fragile_guarantee' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <p className="text-muted">
+                      Transit assurance cards and policy copy rendered natively on storefront.
+                    </p>
+                  </div>
+                )}
+
+                {/* 7. Lifestyle & Heritage Gifting */}
+                {sk.id === 'lifestyle_gifting' && (
+                  <div className="space-y-4 text-xs font-sans">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Badge Text</label>
+                        <input
+                          type="text"
+                          value={settings.badge || 'Thoughtful Heritage Gifting'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'badge', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">Section Headline</label>
+                        <input
+                          type="text"
+                          value={settings.title || 'Heirloom Accents That Tell a Story.'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'title', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-semibold"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-charcoal block">Narrative Description</label>
+                      <textarea
+                        rows={3}
+                        value={
+                          settings.description ||
+                          settings.subtitle ||
+                          'Elevate modern living rooms and corporate executive suites with authentic craft. Hand-carved Sheesham wood tissue covers, solid brass chatuwata mortars, and artisanal marble desk clocks—curated specifically for memorable weddings, commemorative milestones, and diplomatic gifting.'
+                        }
+                        onChange={(e) => handleUpdateSetting(sk.id, 'description', e.target.value)}
+                        className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal leading-relaxed"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">CTA Button Text</label>
+                        <input
+                          type="text"
+                          value={settings.ctaText || 'Browse Gift Collections'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'ctaText', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-charcoal block">CTA Button Link</label>
+                        <input
+                          type="text"
+                          value={settings.ctaLink || '/products'}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'ctaLink', e.target.value)}
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <label className="font-semibold text-charcoal block">Editorial Gifting Photo (Storage Uploader)</label>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="text"
+                          value={settings.image || ''}
+                          onChange={(e) => handleUpdateSetting(sk.id, 'image', e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono text-[11px]"
+                        />
+                        <label className="px-3 py-2 bg-chiseled hover:bg-border border border-border rounded-lg text-charcoal text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0">
+                          {uploadingField === 'lifestyle_gifting_image' ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-lapis" />
+                          ) : (
+                            <Upload className="w-3.5 h-3.5 text-lapis" />
+                          )}
+                          <span>Upload File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageFileUpload(sk.id, 'image', file);
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-      )}
+      </div>
     </div>
   );
 }

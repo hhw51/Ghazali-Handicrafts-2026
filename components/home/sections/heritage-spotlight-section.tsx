@@ -4,8 +4,40 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Play, MapPin, ShieldCheck, Handshake, History, X } from 'lucide-react';
 
-export function HeritageSpotlightSection() {
+export interface HeritageSpotlightSectionConfig {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  narrative?: string;
+  quote?: string;
+  quoteAuthor?: string;
+  videoUrl?: string;
+  videoPoster?: string;
+}
+
+export function HeritageSpotlightSection({
+  config,
+}: {
+  config?: HeritageSpotlightSectionConfig;
+}) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  const badgeText = config?.badge || 'ESTABLISHED 1976 • 50 YEARS AT THE SAME HISTORIC SHOP';
+  const mainTitle = config?.title || "Half a Century of Preserving Pakistan's Living Craft";
+  const subtitle =
+    config?.subtitle ||
+    'From our original flagship shop in Lahore to master artisan workshops across Swat, Multan, and Sillanwali.';
+  const narrative =
+    config?.narrative ||
+    'In 1976, Ghazali Handicrafts opened its doors with a simple pledge: to provide an enduring sanctuary for master Pakistani Ustads whose craft was being eclipsed by factory reproductions. Fifty uninterrupted years later, operating from the very same historic shop address in Lahore, we continue our lifelong guardianship of genuine Sheesham joinery, Kashigari tile glazes, and hand-beaten Peshawar brassware.';
+  const quoteText =
+    config?.quote ||
+    '“For 50 years, this shop has not just sold decorative pieces; we have guarded the dignity and generational survival of our country\'s master craftsmen.”';
+  const quoteAuthor = config?.quoteAuthor || 'Founder & Senior Conservator, Ghazali Handicrafts';
+  const videoPoster =
+    config?.videoPoster ||
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuC65WkVwjoGLadBch5OQnK0sPTgrGeLcosT20XchCD4TyEkHWfRV24BZsMzAgG5Xjzg5S17XLuePnUZbNvpH8Y9TRV50YuXFjuYaRkiPPMBrAufS6QWj2K2cU3u-7EwIuPHPA3hWWo8a14H5WJtRYfqLDBfmOU3MK6wRPmMViFSRlhvkQohSqbaQXIKlg-jAFLx1IWKwN6pO-kNynwX2eZEoF1UndwQzkY24pNswMPvi4REjvHp5Gpq';
+  const videoUrl = config?.videoUrl || '';
 
   return (
     <section className="relative w-full bg-surface-container-high py-space-xl px-margin-mobile md:px-margin-tablet lg:px-margin overflow-hidden border-y border-surface-container-highest">
@@ -19,14 +51,12 @@ export function HeritageSpotlightSection() {
         <div className="max-w-3xl space-y-2">
           <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-widest font-bold border border-surface-container-highest">
             <History className="w-4 h-4 text-primary" />
-            <span>ESTABLISHED 1976 • 50 YEARS AT THE SAME HISTORIC SHOP</span>
+            <span>{badgeText}</span>
           </span>
           <h2 className="font-syne text-xl sm:text-2xl lg:text-3xl font-semibold text-on-surface leading-tight">
-            Half a Century of Preserving Pakistan's Living Craft
+            {mainTitle}
           </h2>
-          <p className="font-serif text-sm sm:text-base text-on-surface-variant">
-            From our original flagship shop in Lahore to master artisan workshops across Swat, Multan, and Sillanwali.
-          </p>
+          <p className="font-serif text-sm sm:text-base text-on-surface-variant">{subtitle}</p>
         </div>
 
         {/* Split Cinematic Layout */}
@@ -34,16 +64,16 @@ export function HeritageSpotlightSection() {
           {/* Left Column: Narrative & Metrics (Cols 1-6) */}
           <div className="lg:col-span-6 space-y-space-md">
             <p className="font-serif text-sm sm:text-base text-on-surface-variant leading-relaxed">
-              In 1976, Ghazali Handicrafts opened its doors with a simple pledge: to provide an enduring sanctuary for master Pakistani Ustads whose craft was being eclipsed by factory reproductions. Fifty uninterrupted years later, operating from the very same historic shop address in Lahore, we continue our lifelong guardianship of genuine Sheesham joinery, Kashigari tile glazes, and hand-beaten Peshawar brassware.
+              {narrative}
             </p>
 
             {/* Founder's Pull-Quote Callout */}
             <blockquote className="p-space-md rounded-xl bg-surface-container-lowest/90 backdrop-blur-xs shadow-xs border-l-4 border-[#00405C]">
               <p className="font-serif text-base sm:text-lg italic text-on-surface mb-2 leading-snug">
-                “For 50 years, this shop has not just sold decorative pieces; we have guarded the dignity and generational survival of our country's master craftsmen.”
+                {quoteText}
               </p>
               <cite className="font-label-md text-label-md text-primary font-bold uppercase tracking-widest block not-italic">
-                — Founder & Senior Conservator, Ghazali Handicrafts
+                — {quoteAuthor}
               </cite>
             </blockquote>
 
@@ -87,8 +117,8 @@ export function HeritageSpotlightSection() {
             >
               {/* Master Artisan Image Poster Frame */}
               <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC65WkVwjoGLadBch5OQnK0sPTgrGeLcosT20XchCD4TyEkHWfRV24BZsMzAgG5Xjzg5S17XLuePnUZbNvpH8Y9TRV50YuXFjuYaRkiPPMBrAufS6QWj2K2cU3u-7EwIuPHPA3hWWo8a14H5WJtRYfqLDBfmOU3MK6wRPmMViFSRlhvkQohSqbaQXIKlg-jAFLx1IWKwN6pO-kNynwX2eZEoF1UndwQzkY24pNswMPvi4REjvHp5Gpq"
-                alt="Elderly Pakistani master artisan craftsman at vintage studio surrounded by brass artifacts and carved walnut woodwork"
+                src={videoPoster}
+                alt="Pakistani master artisan craftsman at studio"
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
@@ -130,25 +160,38 @@ export function HeritageSpotlightSection() {
 
             {/* Video Player Frame */}
             <div className="relative w-full aspect-video flex items-center justify-center bg-black">
-              <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC65WkVwjoGLadBch5OQnK0sPTgrGeLcosT20XchCD4TyEkHWfRV24BZsMzAgG5Xjzg5S17XLuePnUZbNvpH8Y9TRV50YuXFjuYaRkiPPMBrAufS6QWj2K2cU3u-7EwIuPHPA3hWWo8a14H5WJtRYfqLDBfmOU3MK6wRPmMViFSRlhvkQohSqbaQXIKlg-jAFLx1IWKwN6pO-kNynwX2eZEoF1UndwQzkY24pNswMPvi4REjvHp5Gpq"
-                alt="Founder documentary interview playback"
-                fill
-                className="object-cover opacity-60"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-4">
-                <div className="w-16 h-16 rounded-full bg-[#00405C] text-white flex items-center justify-center shadow-lg animate-pulse border border-white/20">
-                  <Play className="w-8 h-8 fill-white ml-1" />
-                </div>
-                <div className="max-w-md">
-                  <h3 className="font-headline-sm text-headline-sm text-white">
-                    "Fifty Years Guarding the Chisel"
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-white/80 mt-1">
-                    Archival interview filmed at 94-B/II Gulberg III, Lahore flagship archive.
-                  </p>
-                </div>
-              </div>
+              {videoUrl && (videoUrl.includes('youtube') || videoUrl.includes('vimeo')) ? (
+                <iframe
+                  src={videoUrl}
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              ) : videoUrl.endsWith('.mp4') ? (
+                <video src={videoUrl} controls autoPlay className="w-full h-full object-contain" />
+              ) : (
+                <>
+                  <Image
+                    src={videoPoster}
+                    alt="Founder documentary interview playback"
+                    fill
+                    className="object-cover opacity-60"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-[#00405C] text-white flex items-center justify-center shadow-lg animate-pulse border border-white/20">
+                      <Play className="w-8 h-8 fill-white ml-1" />
+                    </div>
+                    <div className="max-w-md">
+                      <h3 className="font-headline-sm text-headline-sm text-white">
+                        "Fifty Years Guarding the Chisel"
+                      </h3>
+                      <p className="font-body-sm text-body-sm text-white/80 mt-1">
+                        Archival interview filmed at 94-B/II Gulberg III, Lahore flagship archive.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

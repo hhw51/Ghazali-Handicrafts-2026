@@ -3,6 +3,7 @@
 import React from 'react';
 import { HomepageSectionRecord } from '@/actions/admin-cms';
 import { Product, Category } from '@/types/product';
+import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { HeroSection } from '@/components/home/sections/hero-section';
 import { RegionsSection } from '@/components/home/sections/regions-section';
 import { FeaturedMasterpiecesSection } from '@/components/home/sections/featured-masterpieces-section';
@@ -11,71 +12,52 @@ import { CratingGuaranteeSection } from '@/components/home/sections/crating-guar
 import { LifestyleGiftSection } from '@/components/home/sections/lifestyle-gift-section';
 
 interface DynamicHomepageRendererProps {
-  sections: HomepageSectionRecord[];
+  sectionsList?: HomepageSectionRecord[];
+  sectionsMap?: Record<string, any>;
+  sections?: HomepageSectionRecord[];
   allProducts: Product[];
   categories: Category[];
 }
 
-const SECTION_COMPONENTS: Record<string, React.FC<any>> = {
-  hero: HeroSection,
-  category_grid: RegionsSection,
-  regions: RegionsSection,
-  product_showcase: FeaturedMasterpiecesSection,
-  featured_masterpieces: FeaturedMasterpiecesSection,
-  editorial_banner: LifestyleGiftSection,
-  lifestyle_gifting: LifestyleGiftSection,
-  heritage_story: HeritageSpotlightSection,
-  heritage_spotlight: HeritageSpotlightSection,
-  trust_bar: CratingGuaranteeSection,
-  crating_guarantee: CratingGuaranteeSection,
-
-  // Legacy type mappings for backward compatibility
-  banner: LifestyleGiftSection,
-  product_grid: FeaturedMasterpiecesSection,
-  category_row: RegionsSection,
-  custom_columns: CratingGuaranteeSection,
-};
-
 export function DynamicHomepageRenderer({
-  sections,
+  sectionsList = [],
+  sectionsMap = {},
+  sections = [],
   allProducts,
   categories,
 }: DynamicHomepageRendererProps) {
-  const activeSections = sections.filter((s) => s.is_active);
+  // Combine sections map lookup
+  const activeSectionsList = sectionsList.length > 0 ? sectionsList : sections;
+  
+  // Extract configuration from O(1) map or settings/config
+  const getSectionConfig = (type: string, legacyKey1?: string, legacyKey2?: string) => {
+    if (sectionsMap[type]) return sectionsMap[type];
+    if (legacyKey1 && sectionsMap[legacyKey1]) return sectionsMap[legacyKey1];
+    if (legacyKey2 && sectionsMap[legacyKey2]) return sectionsMap[legacyKey2];
 
-  // Full high-end artisan layout sequence from code.html if no active CMS overrides are set in DB
-  if (activeSections.length === 0) {
-    return (
-      <div className="w-full space-y-0">
-        <HeroSection />
-        <RegionsSection dbCategories={categories} />
-        <FeaturedMasterpiecesSection allProducts={allProducts} />
-        <HeritageSpotlightSection />
-        <CratingGuaranteeSection />
-        <LifestyleGiftSection />
-      </div>
+    const match = activeSectionsList.find(
+      (s) => s.section_type === type || s.section_type === legacyKey1 || s.section_type === legacyKey2
     );
-  }
+    return match ? match.settings || match.config || {} : {};
+  };
+
+  const announcementConfig = getSectionConfig('announcement_bar');
+  const heroConfig = getSectionConfig('hero');
+  const regionsConfig = getSectionConfig('regions_mastery', 'regions', 'category_grid');
+  const featuredConfig = getSectionConfig('featured_masterpieces', 'product_showcase', 'product_grid');
+  const heritageConfig = getSectionConfig('heritage_50_years', 'heritage_spotlight', 'heritage_story');
+  const cratingConfig = getSectionConfig('fragile_guarantee', 'crating_guarantee', 'trust_bar');
+  const lifestyleConfig = getSectionConfig('lifestyle_gifting', 'editorial_banner', 'banner');
 
   return (
     <div className="w-full space-y-0">
-      {activeSections.map((sec) => {
-        const Component = SECTION_COMPONENTS[sec.section_type];
-        if (!Component) return null;
-
-        const config = sec.settings || sec.config || {};
-
-        return (
-          <React.Fragment key={sec.id}>
-            <Component
-              config={config}
-              allProducts={allProducts}
-              categories={categories}
-              dbCategories={categories}
-            />
-          </React.Fragment>
-        );
-      })}
+      <AnnouncementBar config={announcementConfig} />
+      <HeroSection config={heroConfig} />
+      <RegionsSection config={regionsConfig} dbCategories={categories} />
+      <FeaturedMasterpiecesSection config={featuredConfig} allProducts={allProducts} />
+      <HeritageSpotlightSection config={heritageConfig} />
+      <CratingGuaranteeSection config={cratingConfig} />
+      <LifestyleGiftSection config={lifestyleConfig} />
     </div>
   );
 }
