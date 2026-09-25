@@ -11,7 +11,10 @@ async function getHomepageData() {
 
     const [sectionsRes, productsRes, categoriesRes] = await Promise.all([
       getHomepageSections(),
-      supabase.from('products').select('*, category:categories(*)').order('created_at', { ascending: false }),
+      supabase
+        .from('products')
+        .select('*, category:categories(*)')
+        .order('created_at', { ascending: false }),
       supabase.from('categories').select('*').order('name'),
     ]);
 

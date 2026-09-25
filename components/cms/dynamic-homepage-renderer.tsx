@@ -4,12 +4,11 @@ import React from 'react';
 import { HomepageSectionRecord } from '@/actions/admin-cms';
 import { Product, Category } from '@/types/product';
 import { HeroSection } from '@/components/home/sections/hero-section';
-import { CategoryGridSection } from '@/components/home/sections/category-grid-section';
-import { ProductShowcaseSection } from '@/components/home/sections/product-showcase-section';
-import { EditorialBannerSection } from '@/components/home/sections/editorial-banner-section';
-import { HeritageStorySection } from '@/components/home/sections/heritage-story-section';
-import { TrustBarSection } from '@/components/home/sections/trust-bar-section';
-import { ArtisanSpotlightSection } from '@/components/home/sections/artisan-spotlight-section';
+import { RegionsSection } from '@/components/home/sections/regions-section';
+import { FeaturedMasterpiecesSection } from '@/components/home/sections/featured-masterpieces-section';
+import { HeritageSpotlightSection } from '@/components/home/sections/heritage-spotlight-section';
+import { CratingGuaranteeSection } from '@/components/home/sections/crating-guarantee-section';
+import { LifestyleGiftSection } from '@/components/home/sections/lifestyle-gift-section';
 
 interface DynamicHomepageRendererProps {
   sections: HomepageSectionRecord[];
@@ -19,18 +18,22 @@ interface DynamicHomepageRendererProps {
 
 const SECTION_COMPONENTS: Record<string, React.FC<any>> = {
   hero: HeroSection,
-  category_grid: CategoryGridSection,
-  product_showcase: ProductShowcaseSection,
-  editorial_banner: EditorialBannerSection,
-  heritage_story: HeritageStorySection,
-  trust_bar: TrustBarSection,
-  artisan_spotlight: ArtisanSpotlightSection,
+  category_grid: RegionsSection,
+  regions: RegionsSection,
+  product_showcase: FeaturedMasterpiecesSection,
+  featured_masterpieces: FeaturedMasterpiecesSection,
+  editorial_banner: LifestyleGiftSection,
+  lifestyle_gifting: LifestyleGiftSection,
+  heritage_story: HeritageSpotlightSection,
+  heritage_spotlight: HeritageSpotlightSection,
+  trust_bar: CratingGuaranteeSection,
+  crating_guarantee: CratingGuaranteeSection,
 
   // Legacy type mappings for backward compatibility
-  banner: EditorialBannerSection,
-  product_grid: ProductShowcaseSection,
-  category_row: CategoryGridSection,
-  custom_columns: TrustBarSection,
+  banner: LifestyleGiftSection,
+  product_grid: FeaturedMasterpiecesSection,
+  category_row: RegionsSection,
+  custom_columns: CratingGuaranteeSection,
 };
 
 export function DynamicHomepageRenderer({
@@ -40,20 +43,22 @@ export function DynamicHomepageRenderer({
 }: DynamicHomepageRendererProps) {
   const activeSections = sections.filter((s) => s.is_active);
 
-  // Default fallback layout if no active CMS sections exist in database
+  // Full high-end artisan layout sequence from code.html if no active CMS overrides are set in DB
   if (activeSections.length === 0) {
     return (
-      <div className="space-y-16 pb-20">
-        <HeroSection config={{ title: 'Authentic Heritage Handicrafts of Pakistan' }} />
-        <CategoryGridSection config={{ headline: 'Explore Craft Lineages by Region' }} dbCategories={categories} />
-        <ProductShowcaseSection config={{ headline: 'Curated Masterpiece Showcase', limit: 8 }} allProducts={allProducts} />
-        <TrustBarSection config={{}} />
+      <div className="w-full space-y-0">
+        <HeroSection />
+        <RegionsSection dbCategories={categories} />
+        <FeaturedMasterpiecesSection allProducts={allProducts} />
+        <HeritageSpotlightSection />
+        <CratingGuaranteeSection />
+        <LifestyleGiftSection />
       </div>
     );
   }
 
   return (
-    <div className="space-y-16 pb-20">
+    <div className="w-full space-y-0">
       {activeSections.map((sec) => {
         const Component = SECTION_COMPONENTS[sec.section_type];
         if (!Component) return null;

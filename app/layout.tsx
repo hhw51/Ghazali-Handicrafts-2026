@@ -1,21 +1,29 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
+import { Syne, Libre_Caslon_Text, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartDrawer } from '@/components/cart/cart-drawer';
 
-const cormorant = Cormorant_Garamond({
+const syne = Syne({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-cormorant',
+  variable: '--font-syne',
+  weight: ['500', '600', '700', '800'],
+  display: 'swap',
+});
+
+const caslon = Libre_Caslon_Text({
+  subsets: ['latin'],
+  variable: '--font-caslon',
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
   display: 'swap',
 });
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
 });
 
@@ -78,7 +86,13 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${cormorant.variable} ${jakarta.variable}`}>
+    <html lang="en" className={`${syne.variable} ${caslon.variable} ${jakarta.variable}`}>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+          rel="stylesheet"
+        />
+      </head>
       <body className="bg-background text-foreground antialiased selection:bg-brass/30 flex flex-col min-h-screen">
         <script
           type="application/ld+json"
