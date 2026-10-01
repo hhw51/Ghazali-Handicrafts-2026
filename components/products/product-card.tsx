@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ShoppingBag, Sparkles, Check } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
+import { getProductImageAlt } from '@/lib/utils/seo';
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +19,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const primaryImage = product.images[0] || '/images/hero/craft-hero.png';
   const secondaryImage = product.images[1] || primaryImage;
+  const imageAlt = getProductImageAlt(product, isHovered ? 1 : 0);
 
   const tagsList = Array.isArray(product.tags)
     ? product.tags
@@ -56,7 +58,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <Link href={`/products/${product.slug}`} className="block relative aspect-[4/5] overflow-hidden bg-parchment">
         <Image
           src={isHovered ? secondaryImage : primaryImage}
-          alt={product.name}
+          alt={imageAlt}
           fill
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"

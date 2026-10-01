@@ -36,16 +36,6 @@ export const metadata: Metadata = {
   },
   description:
     'Preserving Pakistan’s living craft since 1976. Hand-carved Swati walnut woodwork, hand-thrown Multani blue pottery, Taxila marble clocks, and Rawalpindi truck art. Nationwide Cash on Delivery with fragile double-crating guarantee.',
-  keywords: [
-    'Pakistani handicrafts',
-    'Ghazali Handicrafts',
-    'Multani blue pottery',
-    'Swati wood carving',
-    'Handicraft shop Anarkali Lahore',
-    'Pakistani truck art decor',
-    'Taxila marble clock',
-    'Onyx crafts Pakistan',
-  ],
   icons: {
     icon: [
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },

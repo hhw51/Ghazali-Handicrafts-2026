@@ -4,8 +4,24 @@ import { StorefrontCatalogWrapper } from '@/components/products/storefront-catal
 import { Product, Category } from '@/types/product';
 import Link from 'next/link';
 import { Sparkles, Filter } from 'lucide-react';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Artisanal Pakistani Crafts Catalog | Ghazali Handicrafts',
+  description:
+    'Browse our complete catalog of authentic hand-carved Swati woodwork, Multani blue pottery, Taxila marble clocks, and Rawalpindi truck art.',
+  alternates: {
+    canonical: 'https://ghazalihandicrafts.com/products',
+  },
+  openGraph: {
+    title: 'Artisanal Pakistani Crafts Catalog | Ghazali Handicrafts',
+    description:
+      'Browse authentic hand-carved Swati woodwork, Multani blue pottery, Taxila marble clocks, and Rawalpindi truck art.',
+    url: 'https://ghazalihandicrafts.com/products',
+  },
+};
 
 interface PageProps {
   searchParams: Promise<{

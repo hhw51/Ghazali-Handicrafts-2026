@@ -101,13 +101,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const canonicalUrl = `https://ghazalihandicrafts.com/products/${product.slug}`;
+  const desc =
+    product.short_description ||
+    product.long_description?.slice(0, 160) ||
+    `Discover authentic handcrafted ${product.name} at Ghazali Handicrafts. Made by master artisans, delivered nationwide with fragile crating guarantee.`;
+
   return {
     title: `${product.name} | Ghazali Handicrafts`,
-    description: product.short_description || product.long_description?.slice(0, 160),
+    description: desc,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
-      title: product.name,
-      description: product.short_description || undefined,
-      images: [{ url: product.images[0] || '/images/hero/craft-hero.png' }],
+      title: `${product.name} | Ghazali Handicrafts`,
+      description: desc,
+      url: canonicalUrl,
+      images: product.images?.[0] ? [{ url: product.images[0] }] : [],
     },
   };
 }
@@ -122,7 +132,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // JSON-LD Structured Data for Google Shopping
+  // JSON-LD Structured Data for Google Shopping & Breadcrumbs
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -149,14 +159,43 @@ export default async function ProductDetailPage({ params }: PageProps) {
     }),
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://ghazalihandicrafts.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Catalog',
+        item: 'https://ghazalihandicrafts.com/products',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.name,
+        item: `https://ghazalihandicrafts.com/products/${product.slug}`,
+      },
+    ],
+  };
+
   const primaryImage = product.images[0] || '/images/hero/craft-hero.png';
 
   return (
     <div className="pb-24 pt-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* JSON-LD Script Embed */}
+      {/* JSON-LD Script Embeds */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* Breadcrumb Rail */}

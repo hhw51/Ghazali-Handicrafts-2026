@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { getProductImageAlt } from '@/lib/utils/seo';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -17,6 +18,8 @@ export function ProductImageGallery({
   const fallback = '/images/hero/craft-hero.png';
   const validImages = images && images.length > 0 ? images : [fallback];
   const [selectedImage, setSelectedImage] = useState(validImages[0]);
+  const selectedIdx = validImages.indexOf(selectedImage);
+  const mainAlt = getProductImageAlt({ name: productName }, selectedIdx >= 0 ? selectedIdx : 0);
 
   return (
     <div className="space-y-4 lg:sticky lg:top-24">
@@ -24,7 +27,7 @@ export function ProductImageGallery({
       <div className="relative aspect-square max-h-[500px] mx-auto rounded-xl overflow-hidden bg-sandstone border-2 border-border shadow-craft-md transition-all duration-300">
         <Image
           src={selectedImage}
-          alt={productName}
+          alt={mainAlt}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
@@ -43,6 +46,7 @@ export function ProductImageGallery({
         <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
           {validImages.map((img, idx) => {
             const isSelected = selectedImage === img;
+            const thumbAlt = getProductImageAlt({ name: productName }, idx);
             return (
               <button
                 key={idx}
@@ -58,7 +62,7 @@ export function ProductImageGallery({
               >
                 <Image
                   src={img}
-                  alt={`${productName} thumbnail ${idx + 1}`}
+                  alt={thumbAlt}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 25vw, 15vw"

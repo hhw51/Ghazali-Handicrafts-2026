@@ -39,8 +39,33 @@ export function HeritageSpotlightSection({
     'https://lh3.googleusercontent.com/aida-public/AB6AXuC65WkVwjoGLadBch5OQnK0sPTgrGeLcosT20XchCD4TyEkHWfRV24BZsMzAgG5Xjzg5S17XLuePnUZbNvpH8Y9TRV50YuXFjuYaRkiPPMBrAufS6QWj2K2cU3u-7EwIuPHPA3hWWo8a14H5WJtRYfqLDBfmOU3MK6wRPmMViFSRlhvkQohSqbaQXIKlg-jAFLx1IWKwN6pO-kNynwX2eZEoF1UndwQzkY24pNswMPvi4REjvHp5Gpq';
   const videoUrl = config?.videoUrl || '';
 
+  const videoJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: 'Fifty Years Guarding the Chisel — The Ghazali Handicrafts Story',
+    description:
+      'An archival documentary interview chronicling fifty uninterrupted years preserving master Pakistani artisans across Swat, Multan, and Lahore.',
+    thumbnailUrl: [videoPoster || 'https://ghazalihandicrafts.com/og-image.jpg'],
+    uploadDate: '2026-01-01T08:00:00+05:00',
+    contentUrl: 'https://ghazalihandicrafts.com',
+    embedUrl: videoUrl || 'https://ghazalihandicrafts.com',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Ghazali Handicrafts',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://ghazalihandicrafts.com/favicon-32x32.png',
+      },
+    },
+  };
+
   return (
     <section className="relative w-full bg-surface-container-high py-space-xl px-margin-mobile md:px-margin-tablet lg:px-margin overflow-hidden border-y border-surface-container-highest">
+      {/* VideoObject Schema.org JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
+      />
       {/* Background Watermark */}
       <div className="absolute -top-12 -right-8 select-none pointer-events-none opacity-5 font-syne text-[8rem] sm:text-[10rem] leading-none font-bold text-on-surface">
         1976
