@@ -186,7 +186,7 @@ export function HeritageSpotlightSection({
                         "Fifty Years Guarding the Chisel"
                       </h3>
                       <p className="font-body-sm text-body-sm text-white/80 mt-1">
-                        Archival interview filmed at 94-B/II Gulberg III, Lahore flagship archive.
+                        Archival interview filmed at 27 New Anarkali Road, Lahore flagship studio.
                       </p>
                     </div>
                   </div>

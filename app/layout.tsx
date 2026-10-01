@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Syne, Libre_Caslon_Text, Plus_Jakarta_Sans } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
@@ -28,37 +29,58 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://ghazalihandicrafts.com'),
   title: {
-    default: 'Ghazali Handicrafts | Luxury Artisanal Heritage of Pakistan',
+    default: 'Ghazali Handicrafts | 50 Years of Authentic Pakistani Artisanal Heritage',
     template: '%s | Ghazali Handicrafts',
   },
   description:
-    'Authentic Pakistani cultural heritage crafts. Explore Multani blue pottery, Swati hand-carved woodwork, Pakistani white onyx chess sets, and Rawalpindi truck art.',
+    'Preserving Pakistan’s living craft since 1976. Hand-carved Swati walnut woodwork, hand-thrown Multani blue pottery, Taxila marble clocks, and Rawalpindi truck art. Nationwide Cash on Delivery with fragile double-crating guarantee.',
   keywords: [
     'Pakistani handicrafts',
+    'Ghazali Handicrafts',
     'Multani blue pottery',
     'Swati wood carving',
-    'Onyx chess set',
-    'Truck art Pakistan',
-    'Artisanal decor',
-    'Cash on delivery Pakistan',
+    'Handicraft shop Anarkali Lahore',
+    'Pakistani truck art decor',
+    'Taxila marble clock',
+    'Onyx crafts Pakistan',
   ],
+  icons: {
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/site.webmanifest',
+  alternates: {
+    canonical: 'https://ghazalihandicrafts.com',
+  },
   openGraph: {
-    title: 'Ghazali Handicrafts | Luxury Artisanal Heritage',
+    title: 'Ghazali Handicrafts — Authentic Artisanal Heritage of Pakistan',
     description:
-      'Authentic Pakistani cultural heritage crafts commissioned directly from master artisans.',
+      'Hand-chiseled Swati woodwork, Multani pottery, and authentic truck art. 50-year historic shop in Anarkali, Lahore. Delivered nationwide via Cash on Delivery.',
     url: 'https://ghazalihandicrafts.com',
     siteName: 'Ghazali Handicrafts',
-    images: [
-      {
-        url: '/images/hero/craft-hero.png',
-        width: 1200,
-        height: 630,
-        alt: 'Ghazali Handicrafts Artisanal Heritage Showcase',
-      },
-    ],
     locale: 'en_PK',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Ghazali Handicrafts Artisanal Heritage',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ghazali Handicrafts | Authentic Pakistani Crafts',
+    description: '50-year legacy of handcrafted heritage. Nationwide COD with double-crating guarantee.',
+    images: ['/og-image.jpg'],
   },
 };
 
@@ -74,12 +96,13 @@ export default function RootLayout({
     image: 'https://ghazalihandicrafts.com/images/hero/craft-hero.png',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '27 New Anarkali',
+      streetAddress: '27 New Anarkali Road, Anarkali Bazaar',
       addressLocality: 'Lahore',
       addressRegion: 'Punjab',
+      postalCode: '54000',
       addressCountry: 'PK',
     },
-    hasMap: 'https://maps.app.goo.gl/fbt2FunN1MfoD7Px6',
+    hasMap: 'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
     priceRange: 'PKR',
     currenciesAccepted: 'PKR',
     paymentAccepted: 'Cash on Delivery',
@@ -88,6 +111,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${syne.variable} ${caslon.variable} ${jakarta.variable}`}>
       <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
           rel="stylesheet"
@@ -102,6 +129,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <Footer />
         <CartDrawer />
+        <GoogleAnalytics gaId="G-RSJGN708MR" />
       </body>
     </html>
   );

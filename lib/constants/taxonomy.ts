@@ -50,9 +50,9 @@ export type FunctionalCategory = (typeof FUNCTIONAL_CATEGORIES)[number];
 
 export const FLAGSHIP_STORE_INFO = {
   name: 'Ghazali Handicrafts',
-  address: '27 New Anarkali, Lahore, Punjab, Pakistan',
-  mapsUrl: 'https://maps.app.goo.gl/fbt2FunN1MfoD7Px6',
-  phone: '+92 300 1234567',
-  whatsappNumber: '923001234567',
+  address: '27 New Anarkali Road, Anarkali Bazaar, Lahore, Punjab 54000, Pakistan',
+  mapsUrl: 'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
+  phone: '+92 310 4755973',
+  whatsappNumber: '923104755973',
   email: 'concierge@ghazalihandicrafts.com',
 };

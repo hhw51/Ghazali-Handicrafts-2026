@@ -159,11 +159,20 @@ export function Footer() {
               <h4 className="font-label-lg text-label-lg uppercase tracking-wider text-[#FAF8F5] mb-space-sm font-bold">
                 Lahore Dispatch
               </h4>
-              <address className="not-italic font-body-sm text-body-sm text-[#D5CCC0]/80 space-y-1.5">
-                <p className="text-[#FAF8F5] font-semibold">Flagship Studio & Dispatch Archive</p>
-                <p>94-B/II Gulberg III, Lahore, Punjab</p>
-                <p>Islamic Republic of Pakistan</p>
-                <p className="text-[#C5A880] pt-1 text-xs">Mon - Sat: 10:00 AM - 08:00 PM PKT</p>
+              <address className="not-italic text-xs text-[#D5CCC0]/80 space-y-1">
+                <p className="font-semibold text-[#FAF8F5]">Historic Flagship Studio & Dispatch</p>
+                <p>27 New Anarkali Road, Anarkali Bazaar</p>
+                <p>Lahore, Punjab 54000, Pakistan</p>
+                <a
+                  href="https://maps.app.goo.gl/7sGBoDgCb1imyGME8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-primary-fixed-dim hover:underline text-xs pt-1.5 font-medium"
+                >
+                  <span className="material-symbols-outlined text-[14px]">near_me</span>
+                  <span>Get Directions on Google Maps →</span>
+                </a>
+                <p className="text-[11px] text-[#D5CCC0]/60 pt-1">Mon – Sat: 10:00 AM – 09:00 PM PKT</p>
               </address>
             </div>
           </div>

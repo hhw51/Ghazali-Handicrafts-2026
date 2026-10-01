@@ -28,7 +28,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   hero_primary_cta_text: 'Explore Collections',
   hero_primary_cta_link: '/products',
   hero_secondary_cta_text: 'Visit Store',
-  hero_secondary_cta_link: 'https://maps.app.goo.gl/fbt2FunN1MfoD7Px6',
+  hero_secondary_cta_link: 'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
   hero_image_url: '/images/hero/craft-hero.png',
   ticker_text: 'Multani Blue Pottery • Swati Wood Carving • Chinioti Brass Inlay • Authentic Truck Art • Hand-Turned Marble',
   story_heading: 'From Raw Earth to Finished Relic',
