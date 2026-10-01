@@ -79,23 +79,50 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const storeJsonLd = {
+  const rootGraphJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Store',
-    name: 'Ghazali Handicrafts',
-    image: 'https://ghazalihandicrafts.com/images/hero/craft-hero.png',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: '27 New Anarkali Road, Anarkali Bazaar',
-      addressLocality: 'Lahore',
-      addressRegion: 'Punjab',
-      postalCode: '54000',
-      addressCountry: 'PK',
-    },
-    hasMap: 'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
-    priceRange: 'PKR',
-    currenciesAccepted: 'PKR',
-    paymentAccepted: 'Cash on Delivery',
+    '@graph': [
+      {
+        '@type': 'Store',
+        '@id': 'https://www.ghazalihandicrafts.com/#store',
+        name: 'Ghazali Handicrafts',
+        description:
+          'Historic Pakistani artisan flagship studio and digital catalog operating since 1976. Specializing in Swati relief walnut woodwork, Multani blue glazed ceramics (Kashigari), Taxila marble & onyx, and genuine hand-painted truck art.',
+        url: 'https://www.ghazalihandicrafts.com',
+        telephone: '+92-310-4755973',
+        foundingDate: '1976',
+        priceRange: 'PKR 800 - PKR 50,000',
+        paymentAccepted: 'Cash on Delivery, Bank Transfer',
+        currenciesAccepted: 'PKR',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '27 New Anarkali Road, Anarkali Bazaar',
+          addressLocality: 'Lahore',
+          addressRegion: 'Punjab',
+          postalCode: '54000',
+          addressCountry: 'PK',
+        },
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: 31.5657,
+          longitude: 74.3129,
+        },
+        hasMap: 'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
+        sameAs: [
+          'https://www.facebook.com/share/18KLD4HuuT/',
+          'https://www.instagram.com/ghazali.handicrafts_?stkn=YzdhbzBlM21uNnp4',
+          'https://youtube.com/@ghazalihandicraft4031',
+          'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
+        ],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://www.ghazalihandicrafts.com/#website',
+        url: 'https://www.ghazalihandicrafts.com',
+        name: 'Ghazali Handicrafts',
+        publisher: { '@id': 'https://www.ghazalihandicrafts.com/#store' },
+      },
+    ],
   };
 
   return (
@@ -113,7 +140,7 @@ export default function RootLayout({
       <body className="bg-background text-foreground antialiased selection:bg-brass/30 flex flex-col min-h-screen">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootGraphJsonLd) }}
         />
         <Header />
         <main className="flex-1">{children}</main>
