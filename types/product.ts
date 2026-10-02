@@ -2,7 +2,8 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
-  created_at: string;
+  created_at?: string;
+  count?: number;
 }
 
 export interface Product {

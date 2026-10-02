@@ -116,7 +116,7 @@ export function CatalogToolbar({
                 : 'bg-sandstone text-charcoal/80 hover:bg-chiseled border border-border'
             }`}
           >
-            {cat.name}
+            {cat.name} {cat.count !== undefined ? `(${cat.count})` : ''}
           </Link>
         ))}
       </div>

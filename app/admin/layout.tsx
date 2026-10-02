@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Package, ShoppingCart, FileSpreadsheet, LayoutDashboard, Layers, LogOut, ArrowLeft } from 'lucide-react';
+import { Package, ShoppingCart, FileSpreadsheet, LayoutDashboard, Layers, LogOut, ArrowLeft, FolderKanban } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +31,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             >
               <Package className="w-4 h-4 text-lapis" />
               <span>Products & Stock</span>
+            </Link>
+
+            <Link
+              href="/admin/categories"
+              className="flex items-center gap-2.5 px-3 py-2 text-charcoal hover:bg-parchment rounded-md transition-colors"
+            >
+              <FolderKanban className="w-4 h-4 text-emerald-700" />
+              <span>Categories & Hubs</span>
             </Link>
 
             <Link

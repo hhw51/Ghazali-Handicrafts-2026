@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getStorefrontCategories } from '@/actions/admin-categories';
 import { CatalogToolbar } from '@/components/products/catalog-toolbar';
 import { StorefrontCatalogWrapper } from '@/components/products/storefront-catalog-wrapper';
 import { Product, Category } from '@/types/product';
@@ -53,8 +54,8 @@ async function getProductsAndCategories(params: {
     const page = params.page || 1;
     const limit = params.limit || 25;
 
-    // 1. Fetch categories
-    const { data: categories } = await supabase.from('categories').select('*').order('name');
+    // 1. Fetch non-empty categories
+    const categories = await getStorefrontCategories();
 
     // 2. Build product query
     let query = supabase

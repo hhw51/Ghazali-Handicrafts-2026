@@ -8,12 +8,14 @@ import { useCartStore } from '@/store/cart-store';
 
 import { FestiveBanner } from '@/components/layout/festive-banner';
 import { SearchModal } from '@/components/search/search-modal';
+import { getStorefrontCategories } from '@/actions/admin-categories';
 
 export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string; count: number }[]>([]);
 
   const items = useCartStore((state) => state.items);
   const openDrawer = useCartStore((state) => state.openDrawer);
@@ -27,6 +29,14 @@ export function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    getStorefrontCategories().then((res) => {
+      if (res && res.length > 0) {
+        setCategories(res);
+      }
+    });
   }, []);
 
   // Keyboard shortcut listener for Cmd+K / Ctrl+K
@@ -97,33 +107,47 @@ export function Header() {
               )}
             </Link>
 
-            <Link
-              href="/products?category=blue-pottery"
-              className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
-            >
-              Blue Pottery
-            </Link>
+            {categories.length > 0 ? (
+              categories.slice(0, 5).map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/products?category=${cat.slug}`}
+                  className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))
+            ) : (
+              <>
+                <Link
+                  href="/products?category=blue-pottery"
+                  className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
+                >
+                  Blue Pottery
+                </Link>
 
-            <Link
-              href="/products?category=swati-woodwork"
-              className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
-            >
-              Swati Carvings
-            </Link>
+                <Link
+                  href="/products?category=swati-art"
+                  className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
+                >
+                  Swati Carvings
+                </Link>
 
-            <Link
-              href="/products?category=marble"
-              className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
-            >
-              Marble & Onyx
-            </Link>
+                <Link
+                  href="/products?category=marble"
+                  className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
+                >
+                  Marble & Onyx
+                </Link>
 
-            <Link
-              href="/products?category=truck-art"
-              className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
-            >
-              Truck Art
-            </Link>
+                <Link
+                  href="/products?category=truck-art"
+                  className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
+                >
+                  Truck Art
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Header Action Buttons (Search Modal & Cart Drawer Trigger) */}
@@ -176,34 +200,49 @@ export function Header() {
                 Craft Categories
               </span>
               <div className="mt-1 space-y-1">
-                <Link
-                  href="/products?category=blue-pottery"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
-                >
-                  Multani Blue Pottery
-                </Link>
-                <Link
-                  href="/products?category=swati-woodwork"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
-                >
-                  Swati Carved Woodwork
-                </Link>
-                <Link
-                  href="/products?category=marble-onyx"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
-                >
-                  Marble & Onyx Crafts
-                </Link>
-                <Link
-                  href="/products?category=truck-art"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
-                >
-                  Authentic Truck Art
-                </Link>
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <Link
+                      key={cat.id}
+                      href={`/products?category=${cat.slug}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))
+                ) : (
+                  <>
+                    <Link
+                      href="/products?category=blue-pottery"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
+                    >
+                      Multani Blue Pottery
+                    </Link>
+                    <Link
+                      href="/products?category=swati-art"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
+                    >
+                      Swati Carved Woodwork
+                    </Link>
+                    <Link
+                      href="/products?category=marble"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
+                    >
+                      Marble & Onyx Crafts
+                    </Link>
+                    <Link
+                      href="/products?category=truck-art"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
+                    >
+                      Authentic Truck Art
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
