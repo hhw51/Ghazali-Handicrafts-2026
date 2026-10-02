@@ -111,7 +111,7 @@ export const useCartStore = create<CartState>()(
             unitBreakdown: nextBreakdown,
             unitSelections: nextBreakdown,
           };
-          set({ items: updatedItems, isOpen: true });
+          set({ items: updatedItems });
         } else {
           set({
             items: [
@@ -136,7 +136,6 @@ export const useCartStore = create<CartState>()(
                 selectedDesign: initialDesign,
               },
             ],
-            isOpen: true,
           });
         }
         return true;

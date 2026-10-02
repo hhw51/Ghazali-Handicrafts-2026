@@ -7,6 +7,8 @@ import { ArrowRight, ShoppingBag, Star, CheckCircle } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 
+import { toast } from 'sonner';
+
 export interface FeaturedMasterpiecesSectionProps {
   config?: {
     headline?: string;
@@ -111,8 +113,14 @@ export function FeaturedMasterpiecesSection({
     e.stopPropagation();
     const success = addItem(p, 1);
     if (success) {
-      setToastMessage(`Added "${p.name}" to cart (COD)`);
-      setTimeout(() => setToastMessage(null), 3000);
+      toast.success(`"${p.name}" added to cart!`, {
+        description: p.size ? `Size: ${p.size}` : undefined,
+        action: {
+          label: 'View Cart',
+          onClick: () => useCartStore.getState().openDrawer(),
+        },
+        duration: 3500,
+      });
     }
   };
 

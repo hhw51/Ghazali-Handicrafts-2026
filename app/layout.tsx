@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartDrawer } from '@/components/cart/cart-drawer';
 import { ProgressBarProvider } from '@/components/providers/progress-bar-provider';
+import { Toaster } from 'sonner';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -148,6 +149,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
+          <Toaster position="bottom-right" richColors />
           <GoogleAnalytics gaId="G-RSJGN708MR" />
         </ProgressBarProvider>
       </body>

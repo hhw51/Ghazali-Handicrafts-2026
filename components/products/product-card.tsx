@@ -8,6 +8,8 @@ import { Product } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { getProductImageAlt } from '@/lib/utils/seo';
 
+import { toast } from 'sonner';
+
 interface ProductCardProps {
   product: Product;
 }
@@ -44,6 +46,14 @@ export function ProductCard({ product }: ProductCardProps) {
       if (success) {
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
+        toast.success(`"${product.name}" added to cart!`, {
+          description: product.size ? `Size: ${product.size}` : undefined,
+          action: {
+            label: 'View Cart',
+            onClick: () => useCartStore.getState().openDrawer(),
+          },
+          duration: 3500,
+        });
       }
     }
   };
