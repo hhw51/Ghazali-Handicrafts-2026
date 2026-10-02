@@ -98,6 +98,7 @@ export function Header() {
 
             <Link
               href="/products"
+              prefetch={true}
               className={`text-sm font-medium transition-colors hover:text-lapis relative py-1 ${pathname === '/products' ? 'text-lapis font-semibold' : 'text-charcoal/80'
                 }`}
             >
@@ -112,6 +113,7 @@ export function Header() {
                 <Link
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
+                  prefetch={true}
                   className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
                 >
                   {cat.name}
@@ -121,6 +123,7 @@ export function Header() {
               <>
                 <Link
                   href="/products?category=blue-pottery"
+                  prefetch={true}
                   className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
                 >
                   Blue Pottery
@@ -128,6 +131,7 @@ export function Header() {
 
                 <Link
                   href="/products?category=swati-art"
+                  prefetch={true}
                   className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
                 >
                   Swati Carvings
@@ -135,6 +139,7 @@ export function Header() {
 
                 <Link
                   href="/products?category=marble"
+                  prefetch={true}
                   className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
                 >
                   Marble & Onyx
@@ -142,6 +147,7 @@ export function Header() {
 
                 <Link
                   href="/products?category=truck-art"
+                  prefetch={true}
                   className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
                 >
                   Truck Art
@@ -183,6 +189,7 @@ export function Header() {
           <div className="md:hidden bg-sandstone border-b border-border px-4 pt-3 pb-6 space-y-3 mt-2 animate-in slide-in-from-top duration-200">
             <Link
               href="/"
+              prefetch={true}
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-base font-medium text-charcoal hover:bg-parchment rounded-md"
             >
@@ -190,6 +197,7 @@ export function Header() {
             </Link>
             <Link
               href="/products"
+              prefetch={true}
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-base font-medium text-charcoal hover:bg-parchment rounded-md"
             >
@@ -205,6 +213,7 @@ export function Header() {
                     <Link
                       key={cat.id}
                       href={`/products?category=${cat.slug}`}
+                      prefetch={true}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
                     >
@@ -215,6 +224,7 @@ export function Header() {
                   <>
                     <Link
                       href="/products?category=blue-pottery"
+                      prefetch={true}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
                     >
@@ -222,6 +232,7 @@ export function Header() {
                     </Link>
                     <Link
                       href="/products?category=swati-art"
+                      prefetch={true}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
                     >
@@ -229,6 +240,7 @@ export function Header() {
                     </Link>
                     <Link
                       href="/products?category=marble"
+                      prefetch={true}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
                     >
@@ -236,6 +248,7 @@ export function Header() {
                     </Link>
                     <Link
                       href="/products?category=truck-art"
+                      prefetch={true}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
                     >

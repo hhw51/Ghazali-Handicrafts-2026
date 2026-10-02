@@ -55,7 +55,7 @@ export function ProductCard({ product }: ProductCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* High Aspect Ratio Media Card */}
-      <Link href={`/products/${product.slug}`} className="block relative aspect-[4/5] overflow-hidden bg-parchment">
+      <Link href={`/products/${product.slug}`} prefetch={true} className="block relative aspect-[4/5] overflow-hidden bg-parchment">
         <Image
           src={isHovered ? secondaryImage : primaryImage}
           alt={imageAlt}
@@ -91,7 +91,7 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Product Content Rail */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-2 bg-sandstone">
         <div>
-          <Link href={`/products/${product.slug}`}>
+          <Link href={`/products/${product.slug}`} prefetch={true}>
             <h3 className="font-serif font-medium text-stone-900 line-clamp-2 hover:text-lapis transition-colors">
               {product.name}
             </h3>

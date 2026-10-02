@@ -142,6 +142,7 @@ export function FeaturedMasterpiecesSection({
           </div>
           <Link
             href="/products"
+            prefetch={true}
             className="inline-flex items-center gap-1.5 font-label-lg text-label-lg text-primary hover:text-primary/80 transition-colors group cursor-pointer"
           >
             <span>View Entire Collection</span>
@@ -186,6 +187,7 @@ export function FeaturedMasterpiecesSection({
               >
                 <Link
                   href={`/products/${product.slug}`}
+                  prefetch={true}
                   className="relative w-full aspect-square bg-surface-container-high overflow-hidden p-space-sm flex items-center justify-center block"
                 >
                   <Image
@@ -221,7 +223,7 @@ export function FeaturedMasterpiecesSection({
                         <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9 (42)
                       </span>
                     </div>
-                    <Link href={`/products/${product.slug}`}>
+                    <Link href={`/products/${product.slug}`} prefetch={true}>
                       <h3 className="font-syne text-sm sm:text-base font-medium text-on-surface leading-snug group-hover:text-primary transition-colors line-clamp-1">
                         {product.name}
                       </h3>

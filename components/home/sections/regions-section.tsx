@@ -63,6 +63,7 @@ export function RegionsSection({ config }: RegionsSectionProps) {
               <Link
                 key={hub.id || `hub_${idx}`}
                 href={linkHref}
+                prefetch={true}
                 className="group relative rounded-xl overflow-hidden shadow-md bg-surface-container-high aspect-[3/4] flex flex-col justify-end p-space-md cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-surface-container-highest"
               >
                 <Image

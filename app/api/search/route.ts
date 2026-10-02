@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
   let productQuery = supabase
     .from('products')
     .select('id, name, slug, price, images, size, weight, tags, short_description')
+    .eq('in_stock', true)
     .limit(8);
 
   if (matchedCatIds.length > 0) {

@@ -1,7 +1,7 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, unstable_cache, revalidateTag } from 'next/cache';
 
 export interface CategoryWithCount {
   id: string;
@@ -40,34 +40,38 @@ export async function getAdminCategories(): Promise<CategoryWithCount[]> {
   }));
 }
 
-// 2. Fetch only non-empty categories (for storefront navbar & filters)
-export async function getStorefrontCategories(): Promise<{ id: string; name: string; slug: string; count: number }[]> {
-  const supabase = createAdminClient();
+// 2. Fetch only non-empty categories (cached at Edge for storefront navbar & filters)
+export const getStorefrontCategories = unstable_cache(
+  async (): Promise<{ id: string; name: string; slug: string; count: number }[]> => {
+    const supabase = createAdminClient();
 
-  const { data: categories, error } = await supabase
-    .from('categories')
-    .select(`
-      id,
-      name,
-      slug,
-      products(id, in_stock)
-    `)
-    .order('name', { ascending: true });
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select(`
+        id,
+        name,
+        slug,
+        products(id, in_stock)
+      `)
+      .order('name', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching storefront categories:', error);
-    return [];
-  }
+    if (error) {
+      console.error('Error fetching storefront categories:', error);
+      return [];
+    }
 
-  return (categories || [])
-    .map((cat: any) => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      count: (cat.products || []).filter((p: any) => p.in_stock !== false).length,
-    }))
-    .filter((cat: any) => cat.count > 0); // Hide categories with 0 active products
-}
+    return (categories || [])
+      .map((cat: any) => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        count: (cat.products || []).filter((p: any) => p.in_stock !== false).length,
+      }))
+      .filter((cat: any) => cat.count > 0);
+  },
+  ['storefront-categories-cache'],
+  { revalidate: 3600, tags: ['categories'] }
+);
 
 // 3. Create or Update Category
 export async function upsertCategory(formData: { id?: string; name: string; slug: string }) {
@@ -96,6 +100,7 @@ export async function upsertCategory(formData: { id?: string; name: string; slug
     return { success: false, error: error.message };
   }
 
+  revalidateTag('categories');
   revalidatePath('/admin/categories');
   revalidatePath('/products');
   revalidatePath('/');
@@ -126,6 +131,7 @@ export async function deleteCategory(categoryId: string) {
     return { success: false, error: error.message };
   }
 
+  revalidateTag('categories');
   revalidatePath('/admin/categories');
   revalidatePath('/products');
   revalidatePath('/');

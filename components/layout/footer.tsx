@@ -99,27 +99,27 @@ export function Footer() {
               </h4>
               <ul className="space-y-2 font-body-sm text-body-sm text-[#D5CCC0]/80">
                 <li>
-                  <Link href="/products?category=blue-pottery" className="hover:text-[#FAF8F5] transition-colors">
+                  <Link href="/products?category=blue-pottery" prefetch={true} className="hover:text-[#FAF8F5] transition-colors">
                     Multan (Kashigari Blue Pottery)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=swati-woodwork" className="hover:text-[#FAF8F5] transition-colors">
+                  <Link href="/products?category=swati-art" prefetch={true} className="hover:text-[#FAF8F5] transition-colors">
                     Swat Valley (Walnut Carvings)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=chiseled-brass" className="hover:text-[#FAF8F5] transition-colors">
+                  <Link href="/products?category=brass-metal" prefetch={true} className="hover:text-[#FAF8F5] transition-colors">
                     Peshawar (Hand-Beaten Brass)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products?category=marble-onyx" className="hover:text-[#FAF8F5] transition-colors">
+                  <Link href="/products?category=marble" prefetch={true} className="hover:text-[#FAF8F5] transition-colors">
                     Khewra (Natural Rock Salt)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products" className="hover:text-[#FAF8F5] transition-colors">
+                  <Link href="/products" prefetch={true} className="hover:text-[#FAF8F5] transition-colors">
                     Sillanwali (Lacquered Woodwork)
                   </Link>
                 </li>

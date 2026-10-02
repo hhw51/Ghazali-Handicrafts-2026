@@ -20,10 +20,10 @@ export async function GET() {
       description,
       price,
       images,
-      is_active,
+      in_stock,
       category:categories(name)
     `)
-    .eq('is_active', true);
+    .eq('in_stock', true);
 
   const xmlItems = (products || []).map((p) => {
     const title = p.name?.replace(/[<>&'"]/g, '');

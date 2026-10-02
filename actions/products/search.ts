@@ -49,7 +49,8 @@ export async function searchProducts(searchTerm: string): Promise<SearchProductR
         short_description,
         long_description,
         category:categories(name, slug)
-      `);
+      `)
+      .eq('in_stock', true);
 
     if (matchedCategoryIds.length > 0) {
       productQuery = productQuery.or(
