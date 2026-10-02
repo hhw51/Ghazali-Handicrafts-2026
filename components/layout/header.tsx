@@ -49,8 +49,8 @@ export function Header() {
       {/* Main Navigation Bar */}
       <nav
         className={`w-full transition-all duration-300 ${isScrolled
-            ? 'bg-parchment/95 backdrop-blur-md border-b border-border shadow-craft-sm py-3'
-            : 'bg-parchment border-b border-border/60 py-4'
+          ? 'bg-parchment/95 backdrop-blur-md border-b border-border shadow-craft-sm py-3'
+          : 'bg-parchment border-b border-border/60 py-4'
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -112,7 +112,7 @@ export function Header() {
             </Link>
 
             <Link
-              href="/products?category=marble-onyx"
+              href="/products?category=marble"
               className="text-sm font-medium text-charcoal/80 hover:text-lapis transition-colors"
             >
               Marble & Onyx
@@ -203,13 +203,6 @@ export function Header() {
                   className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
                 >
                   Authentic Truck Art
-                </Link>
-                <Link
-                  href="/products?category=chiseled-brass"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-1.5 text-sm text-charcoal/90 hover:text-lapis"
-                >
-                  Chiseled Antiqued Brass
                 </Link>
               </div>
             </div>

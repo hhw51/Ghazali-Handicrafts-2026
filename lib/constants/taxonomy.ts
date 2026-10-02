@@ -1,13 +1,9 @@
 export const CRAFT_MATERIALS = [
   'Blue Pottery',
   'Brass Metal',
-  'Camel Bone',
-  'Glasswork',
-  'Marble & Onyx',
   'Naqshi Art',
   'Salt Lamps',
   'Sheesham Wood',
-  'Sword Frames & Arms',
   'Truck Art',
   'Fridge Magnets',
   'Swati Art',
