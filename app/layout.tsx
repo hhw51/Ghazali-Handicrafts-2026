@@ -149,7 +149,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="bottom-right" richColors={false} />
           <GoogleAnalytics gaId="G-RSJGN708MR" />
         </ProgressBarProvider>
       </body>

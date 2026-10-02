@@ -5,7 +5,7 @@ import { Product } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { ShoppingBag, Check } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
-import { toast } from 'sonner';
+import { showAddToCartToast } from '@/lib/utils/toast';
 
 interface PdpActionsProps {
   product: Product;
@@ -21,13 +21,11 @@ export function PdpActions({ product }: PdpActionsProps) {
       if (ok) {
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
-        toast.success(`"${product.name}" added to cart!`, {
-          description: product.size ? `Size: ${product.size}` : undefined,
-          action: {
-            label: 'View Cart',
-            onClick: () => openDrawer(),
-          },
-          duration: 3500,
+        showAddToCartToast({
+          name: product.name,
+          price: product.price,
+          size: product.size,
+          image: product.images[0],
         });
       }
     }
