@@ -149,7 +149,19 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
-          <Toaster position="bottom-left" richColors={false} className="z-[9999]" />
+          <Toaster
+            position="bottom-left"
+            toastOptions={{
+              unstyled: true,
+              className: '!p-0 !m-0 !bg-transparent !border-0 !shadow-none',
+              style: {
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                zIndex: 99999,
+              },
+            }}
+          />
           <GoogleAnalytics gaId="G-RSJGN708MR" />
         </ProgressBarProvider>
       </body>
