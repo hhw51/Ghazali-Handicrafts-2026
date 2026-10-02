@@ -108,7 +108,7 @@ export function Header() {
             </Link>
 
             {categories.length > 0 ? (
-              categories.slice(0, 5).map((cat) => (
+              categories.slice(0, 4).map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
