@@ -22,7 +22,7 @@ export async function getAdminCategories(): Promise<CategoryWithCount[]> {
       name,
       slug,
       created_at,
-      products(id, is_active)
+      products(id, in_stock)
     `)
     .order('name', { ascending: true });
 
@@ -36,7 +36,7 @@ export async function getAdminCategories(): Promise<CategoryWithCount[]> {
     name: cat.name,
     slug: cat.slug,
     created_at: cat.created_at,
-    product_count: (cat.products || []).filter((p: any) => p.is_active).length,
+    product_count: (cat.products || []).length,
   }));
 }
 
@@ -50,7 +50,7 @@ export async function getStorefrontCategories(): Promise<{ id: string; name: str
       id,
       name,
       slug,
-      products(id, is_active)
+      products(id, in_stock)
     `)
     .order('name', { ascending: true });
 
@@ -64,7 +64,7 @@ export async function getStorefrontCategories(): Promise<{ id: string; name: str
       id: cat.id,
       name: cat.name,
       slug: cat.slug,
-      count: (cat.products || []).filter((p: any) => p.is_active).length,
+      count: (cat.products || []).filter((p: any) => p.in_stock !== false).length,
     }))
     .filter((cat: any) => cat.count > 0); // Hide categories with 0 active products
 }
