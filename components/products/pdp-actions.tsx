@@ -33,7 +33,7 @@ export function PdpActions({ product }: PdpActionsProps) {
 
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const whatsappMsg = `Hello Ghazali Handicrafts, I would like to inquire about the item: *${product.name}* (Price: PKR ${product.price}). Link: ${currentUrl}`;
-  const whatsappUrl = `https://wa.me/923104755973?text=${encodeURIComponent(whatsappMsg)}`;
+  const whatsappUrl = `https://wa.me/923219981625?text=${encodeURIComponent(whatsappMsg)}`;
 
   return (
     <div className="space-y-3 pt-2">

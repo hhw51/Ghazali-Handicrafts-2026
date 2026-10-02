@@ -52,7 +52,7 @@ export const FLAGSHIP_STORE_INFO = {
   name: 'Ghazali Handicrafts',
   address: '27 New Anarkali Road, Anarkali Bazaar, Lahore, Punjab 54000, Pakistan',
   mapsUrl: 'https://maps.app.goo.gl/7sGBoDgCb1imyGME8',
-  phone: '+92 310 4755973',
-  whatsappNumber: '923104755973',
+  phone: '+92 321 9981625',
+  whatsappNumber: '923219981625',
   email: 'concierge@ghazalihandicrafts.com',
 };

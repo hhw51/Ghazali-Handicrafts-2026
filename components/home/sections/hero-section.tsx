@@ -37,7 +37,7 @@ export function HeroSection({ config }: { config?: HeroSectionConfig }) {
   const secondaryLink =
     config?.secondaryCtaLink ||
     config?.secondaryCta?.url ||
-    'https://wa.me/923104755973?text=Hello%20Ghazali%20Handicrafts%2C%20I%20would%20like%20to%20inquire%20about%20your%20artisanal%20masterpieces.';
+    'https://wa.me/923219981625?text=Hello%20Ghazali%20Handicrafts%2C%20I%20would%20like%20to%20inquire%20about%20your%20artisanal%20masterpieces.';
   const imageUrl =
     config?.image ||
     'https://lh3.googleusercontent.com/aida-public/AB6AXuBULERIYP1iPVOnmmAD_IkDmEpdUYlVKFT33WKFA0whp7gkZt7_IEytTCkyBjiw3Pf5gSzSvxA9zJfINHQrKTnf2ZyTfKdVxER4GsWbsCDJ6M_6BiKJ4mOzZLV_D45b3_kwI9I4My6FtxuuXl1H-1kMGspje9ha9WYV8Je9-gc2unC2LSccXH64zhRltv37kpygVmmoAeYezVvH82uLuW-PPR4UkuM6W6BMXZNYcbg4OAD5TN4knGJ_';

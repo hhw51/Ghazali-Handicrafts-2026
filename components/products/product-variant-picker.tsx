@@ -121,7 +121,7 @@ export function ProductVariantPicker({ product }: ProductVariantPickerProps) {
 
   // WhatsApp Order Direct Messaging with detailed itemized breakdown
   const handleWhatsAppOrder = () => {
-    const phoneNumber = '923004130000'; // Ghazali Official WhatsApp
+    const phoneNumber = '923219981625'; // Ghazali Official WhatsApp
     let message = `Hello Ghazali Handicrafts! I would like to order:\n\n*Product:* ${product.name}\n*Quantity:* ${quantity}\n*Price:* Rs. ${(product.price * quantity).toLocaleString()} PKR`;
 
     if (hasVariants && unitSelections.length > 0) {

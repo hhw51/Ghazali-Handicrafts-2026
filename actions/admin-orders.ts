@@ -13,9 +13,13 @@ export async function updateOrderStatus(
 }> {
   try {
     const validStatuses: OrderStatus[] = [
+      'pending',
       'pending_verification',
+      'confirmed',
       'verified',
+      'crating',
       'booked_with_courier',
+      'shipped',
       'dispatched',
       'delivered',
       'cancelled',
@@ -45,5 +49,35 @@ export async function updateOrderStatus(
   } catch (err) {
     console.error('updateOrderStatus Exception:', err);
     return { success: false, error: 'Failed to update order status state.' };
+  }
+}
+
+export async function updateOrderNotes(
+  orderId: string,
+  notes: string
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const supabase = createAdminClient();
+
+    const { error } = await supabase
+      .from('orders')
+      .update({ notes })
+      .eq('id', orderId);
+
+    if (error) {
+      console.error('Error updating order notes:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/admin/orders');
+    revalidatePath(`/order-success/${orderId}`);
+
+    return { success: true };
+  } catch (err) {
+    console.error('updateOrderNotes Exception:', err);
+    return { success: false, error: 'Failed to update order notes.' };
   }
 }

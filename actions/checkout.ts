@@ -151,6 +151,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
       console.log('[Order Notification] Awaiting post-checkout notifications dispatch for order:', orderNumber);
 
       await sendOrderNotifications({
+        id: newOrder.id,
         orderNumber,
         customerName: customer.customer_name,
         phone: customer.customer_phone.replace(/\s+/g, ''),

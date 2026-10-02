@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderWithItems } from '@/types/order';
-import { CheckCircle2, ShieldCheck, MapPin, PackageCheck, ArrowRight, Truck } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, MapPin, PackageCheck, ArrowRight, Truck, Clock, Box, Check, AlertCircle } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import type { Metadata } from 'next';
 
@@ -42,6 +42,28 @@ async function getOrderDetails(orderId: string): Promise<OrderWithItems | null> 
   }
 }
 
+function getStepIndex(status: string): number {
+  switch (status) {
+    case 'pending':
+    case 'pending_verification':
+    case 'unverified':
+      return 0;
+    case 'verified':
+    case 'confirmed':
+    case 'crating':
+    case 'processing':
+      return 1;
+    case 'booked_with_courier':
+    case 'dispatched':
+    case 'shipped':
+      return 2;
+    case 'delivered':
+      return 3;
+    default:
+      return 1;
+  }
+}
+
 export default async function OrderSuccessPage({ params }: PageProps) {
   const resolvedParams = await params;
   const order = await getOrderDetails(resolvedParams.orderId);
@@ -50,8 +72,20 @@ export default async function OrderSuccessPage({ params }: PageProps) {
     notFound();
   }
 
-  const whatsappMessage = `Hello Ghazali Handicrafts, I would like to inquire about my order status.\n*Order Ref:* #${order.id}\n*Customer Name:* ${order.customer_name}\n*City:* ${order.city}\n*Total Payable:* PKR ${order.total_amount}`;
-  const whatsappUrl = `https://wa.me/923104755973?text=${encodeURIComponent(whatsappMessage)}`;
+  const trackingUrl = `https://www.ghazalihandicrafts.com/order-success/${order.id}`;
+  const supportWhatsappUrl = `https://wa.me/923219981625?text=${encodeURIComponent(
+    `Salam Ghazali Handicrafts! I placed Order #${order.id.slice(0, 8)}. Track link:${trackingUrl}`
+  )}`;
+
+  const currentStep = getStepIndex(order.status);
+  const isCancelled = order.status === 'cancelled';
+
+  const steps = [
+    { label: 'Pending Confirmation', icon: Clock, desc: 'Verification & Order Booking' },
+    { label: 'Artisan Packaging & Crating', icon: Box, desc: 'Wooden Box & Bubble Buffering' },
+    { label: 'Dispatched (Trax/TCS)', icon: Truck, desc: 'Courier Tracking Assigned' },
+    { label: 'Delivered', icon: CheckCircle2, desc: 'Doorstep Inspection & COD' },
+  ];
 
   return (
     <div className="py-12 pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -70,17 +104,17 @@ export default async function OrderSuccessPage({ params }: PageProps) {
         </h1>
 
         <p className="text-xs sm:text-sm text-muted max-w-lg mx-auto leading-relaxed">
-          Your order <strong className="font-mono text-charcoal">#{order.id}</strong> has been verified. Our master artisans and packaging team in Lahore are preparing your fragile wooden crate parcel.
+          Your order <strong className="font-mono text-charcoal">#{order.id.slice(0, 8)}</strong> has been verified. Our master artisans and packaging team in Lahore are preparing your fragile wooden crate parcel.
         </p>
 
         <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
           <a
-            href={whatsappUrl}
+            href={supportWhatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium text-xs rounded-md shadow-craft-sm transition-colors flex items-center gap-2"
           >
-            <WhatsAppIcon className="w-4 h-4 fill-current text-white" /> Track & Inquire via WhatsApp
+            <WhatsAppIcon className="w-4 h-4 fill-current text-white" /> Chat on WhatsApp with Support
           </a>
 
           <Link
@@ -90,6 +124,64 @@ export default async function OrderSuccessPage({ params }: PageProps) {
             Continue Shopping <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
+      </div>
+
+      {/* Live Order Status Progress Bar */}
+      <div className="bg-sandstone rounded-xl border border-border p-6 space-y-6 shadow-craft-sm">
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <div>
+            <h3 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
+              <PackageCheck className="w-5 h-5 text-terracotta" /> Live Parcel Tracking Status
+            </h3>
+            <p className="text-xs text-muted mt-0.5">Order #{order.id.slice(0, 8)} • Real-time artisan crating pipeline</p>
+          </div>
+          {isCancelled ? (
+            <span className="px-3 py-1 bg-red-100 text-red-800 border border-red-300 font-bold text-xs rounded-full flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" /> Order Cancelled
+            </span>
+          ) : (
+            <span className="px-3 py-1 bg-lapis/10 text-lapis font-bold text-xs rounded-full uppercase tracking-wider font-mono">
+              Status: {order.status}
+            </span>
+          )}
+        </div>
+
+        {!isCancelled && (
+          <div className="py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 relative">
+              {steps.map((step, idx) => {
+                const Icon = step.icon;
+                const isCompleted = idx < currentStep;
+                const isCurrent = idx === currentStep;
+
+                return (
+                  <div key={step.label} className="flex flex-col items-center text-center relative z-10">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                        isCompleted
+                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-md'
+                          : isCurrent
+                          ? 'bg-lapis border-brass text-parchment ring-4 ring-brass/20 scale-110 shadow-lg'
+                          : 'bg-parchment border-border text-muted'
+                      }`}
+                    >
+                      {isCompleted ? <Check className="w-6 h-6" /> : <Icon className="w-5 h-5" />}
+                    </div>
+
+                    <h4
+                      className={`mt-3 font-serif text-xs font-bold leading-tight ${
+                        isCurrent ? 'text-lapis' : isCompleted ? 'text-charcoal' : 'text-muted'
+                      }`}
+                    >
+                      {step.label}
+                    </h4>
+                    <p className="text-[11px] text-muted mt-1 max-w-[130px] leading-tight">{step.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

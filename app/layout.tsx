@@ -91,7 +91,7 @@ export default function RootLayout({
         description:
           'Historic Pakistani artisan flagship studio and digital catalog operating since 1976. Specializing in Swati relief walnut woodwork, Multani blue glazed ceramics (Kashigari), Taxila marble & onyx, and genuine hand-painted truck art.',
         url: 'https://www.ghazalihandicrafts.com',
-        telephone: '+92-310-4755973',
+        telephone: '+92-321-9981625',
         foundingDate: '1976',
         priceRange: 'PKR 800 - PKR 50,000',
         paymentAccepted: 'Cash on Delivery, Bank Transfer',

@@ -17,41 +17,49 @@ function formatItemsList(items: any[]): string {
 }
 
 export async function sendOrderConfirmationNotifications(order: any) {
+  const orderId = order.id || order.orderNumber || '';
+  const orderShortId = orderId.slice(0, 8);
   const itemsBreakdown = formatItemsList(order.items || []);
-  const totalStr = `Rs. ${(order.totalAmount || 0).toLocaleString()}`;
+  const totalAmountVal = order.totalAmount || order.total_amount || 0;
+  const totalStr = `Rs. ${totalAmountVal.toLocaleString()}`;
+  const trackingUrl = `https://www.ghazalihandicrafts.com/order-success/${orderId}`;
+  const supportWhatsappUrl = `https://wa.me/923219981625?text=${encodeURIComponent(
+    `Salam Ghazali Handicrafts! I placed Order #${orderShortId}. Track link:${trackingUrl}`
+  )}`;
 
   // 1. CUSTOMER NOTIFICATION TEMPLATES
   const customerWhatsApp = 
     `🏛️ *Ghazali Handicrafts — Order Confirmed!*\n\n` +
     `Thank you for ordering with us. Your parcel is being prepared.\n\n` +
-    `*Order #:* ${order.orderNumber}\n` +
-    `*Customer:* ${order.customerName}\n` +
+    `*Order #:* ${orderShortId}\n` +
+    `*Customer:* ${order.customerName || order.customer_name}\n` +
     `*Delivery City:* ${order.city}\n` +
-    `*Address:* ${order.shippingAddress}${order.landmark ? ` (Near: ${order.landmark})` : ''}\n` +
+    `*Address:* ${order.shippingAddress || order.address}${order.landmark ? ` (Near: ${order.landmark})` : ''}\n` +
     `*Total (COD):* ${totalStr}\n\n` +
     `*Ordered Items & Selected Variants:*\n${itemsBreakdown}\n\n` +
-    `We will notify you once dispatched. For any inquiries, reply directly to this WhatsApp!`;
+    `*Track Parcel & Crating Status:* ${trackingUrl}\n` +
+    `*Support WhatsApp:* ${supportWhatsappUrl}`;
 
   const customerSMS = 
-    `Ghazali Handicrafts: Order #${order.orderNumber} confirmed! Total: ${totalStr} (COD) to ${order.city}. Items: ${(order.items || []).length} product(s). Track via WhatsApp +923104755973.`;
+    `Assalam-o-Alaikum ${order.customerName || order.customer_name}! Your Ghazali Handicrafts order #${orderShortId} (${totalStr}) has been confirmed.\nTrack your parcel & crating status: ${trackingUrl}\nFor quick queries, WhatsApp us: https://wa.me/923219981625`;
 
-  // 2. ADMIN NOTIFICATION TEMPLATES (Sent to +923104755973)
+  // 2. ADMIN NOTIFICATION TEMPLATES (Sent to +923219981625)
   const adminAlertWhatsApp = 
     `🚨 *NEW ORDER RECEIVED — GHAZALI STORE* 🚨\n\n` +
-    `*Order #:* ${order.orderNumber}\n` +
-    `*Customer Name:* ${order.customerName}\n` +
-    `*Verified Mobile:* ${order.phone}\n` +
-    `*Email:* ${order.email || 'N/A'}\n` +
+    `*Order #:* ${orderShortId}\n` +
+    `*Customer Name:* ${order.customerName || order.customer_name}\n` +
+    `*Verified Mobile:* ${order.phone || order.customer_phone}\n` +
+    `*Email:* ${order.email || order.customer_email || 'N/A'}\n` +
     `*Delivery City:* ${order.city}\n` +
-    `*Street Address:* ${order.shippingAddress}\n` +
+    `*Street Address:* ${order.shippingAddress || order.address}\n` +
     `*Landmark:* ${order.landmark || 'N/A'}\n` +
     `*Total Amount:* ${totalStr} (Cash on Delivery)\n\n` +
     `*Items Breakdown:*\n${itemsBreakdown}`;
 
   const adminAlertSMS = 
-    `New Order #${order.orderNumber}! Customer: ${order.customerName} (${order.phone}), ${order.city}. Total: ${totalStr}. Address: ${order.shippingAddress}. Check Admin Panel!`;
+    `New Order #${orderShortId}! Customer: ${order.customerName || order.customer_name} (${order.phone || order.customer_phone}), ${order.city}. Total: ${totalStr}. Address: ${order.shippingAddress || order.address}. Check Admin Panel!`;
 
-  const adminPhone = '+923104755973';
+  const adminPhone = '+923219981625';
 
   // --- DISPATCH CALLS ---
   // Channel: WhatsApp (Baileys Tunnel/Worker)

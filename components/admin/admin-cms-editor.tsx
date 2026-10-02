@@ -594,7 +594,7 @@ export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
                           value={
                             settings.secondaryCtaLink ||
                             settings.secondaryCta?.url ||
-                            'https://wa.me/923104755973'
+                            'https://wa.me/923219981625'
                           }
                           onChange={(e) => handleUpdateSetting(sk.id, 'secondaryCtaLink', e.target.value)}
                           className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-mono"
