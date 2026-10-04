@@ -141,7 +141,7 @@ export default async function OrderSuccessPage({ params }: PageProps) {
           </span>
         </div>
 
-        <OrderTrackingStepper status={order.status} />
+        <OrderTrackingStepper status={order.status} orderId={order.id} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

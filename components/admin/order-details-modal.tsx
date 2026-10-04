@@ -144,7 +144,7 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.open(`/admin/orders/${order.id}/print`, '_blank', 'width=800,height=900')}
+              onClick={() => window.open(`/admin/orders/${order.id}/print`, '_blank', 'width=900,height=900')}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#FAF8F5] border border-[#D5CCC0] rounded-xl text-xs font-semibold text-[#1A1410] hover:bg-[#EFE9DF] transition-colors cursor-pointer"
             >
               <span>🖨️ Print Packing Slip</span>
