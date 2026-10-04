@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderWithItems } from '@/types/order';
 import { CheckCircle2, ShieldCheck, MapPin, PackageCheck, ArrowRight, Truck, Clock, Box, Check, AlertCircle } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { OrderTrackingStepper } from '@/components/orders/order-tracking-stepper';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -127,7 +128,7 @@ export default async function OrderSuccessPage({ params }: PageProps) {
       </div>
 
       {/* Live Order Status Progress Bar */}
-      <div className="bg-sandstone rounded-xl border border-border p-6 space-y-6 shadow-craft-sm">
+      <div className="bg-sandstone rounded-xl border border-border p-6 space-y-4 shadow-craft-sm">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
             <h3 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
@@ -135,53 +136,12 @@ export default async function OrderSuccessPage({ params }: PageProps) {
             </h3>
             <p className="text-xs text-muted mt-0.5">Order #{order.id.slice(0, 8)} • Real-time artisan crating pipeline</p>
           </div>
-          {isCancelled ? (
-            <span className="px-3 py-1 bg-red-100 text-red-800 border border-red-300 font-bold text-xs rounded-full flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" /> Order Cancelled
-            </span>
-          ) : (
-            <span className="px-3 py-1 bg-lapis/10 text-lapis font-bold text-xs rounded-full uppercase tracking-wider font-mono">
-              Status: {order.status}
-            </span>
-          )}
+          <span className="px-3 py-1 bg-lapis/10 text-lapis font-bold text-xs rounded-full uppercase tracking-wider font-mono">
+            Status: {order.status}
+          </span>
         </div>
 
-        {!isCancelled && (
-          <div className="py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 relative">
-              {steps.map((step, idx) => {
-                const Icon = step.icon;
-                const isCompleted = idx < currentStep;
-                const isCurrent = idx === currentStep;
-
-                return (
-                  <div key={step.label} className="flex flex-col items-center text-center relative z-10">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                        isCompleted
-                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-md'
-                          : isCurrent
-                          ? 'bg-lapis border-brass text-parchment ring-4 ring-brass/20 scale-110 shadow-lg'
-                          : 'bg-parchment border-border text-muted'
-                      }`}
-                    >
-                      {isCompleted ? <Check className="w-6 h-6" /> : <Icon className="w-5 h-5" />}
-                    </div>
-
-                    <h4
-                      className={`mt-3 font-serif text-xs font-bold leading-tight ${
-                        isCurrent ? 'text-lapis' : isCompleted ? 'text-charcoal' : 'text-muted'
-                      }`}
-                    >
-                      {step.label}
-                    </h4>
-                    <p className="text-[11px] text-muted mt-1 max-w-[130px] leading-tight">{step.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <OrderTrackingStepper status={order.status} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
