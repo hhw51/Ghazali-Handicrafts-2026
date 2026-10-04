@@ -29,6 +29,16 @@ interface OrderDetailsModalProps {
   onOrderUpdated?: () => void;
 }
 
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'pending_verification', label: 'Pending Verification' },
+  { value: 'verified', label: 'Verified' },
+  { value: 'booked_with_courier', label: 'Booked with Courier' },
+  { value: 'dispatched', label: 'Dispatched' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'returned', label: 'Returned' },
+];
+
 export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetailsModalProps) {
   const [status, setStatus] = useState<OrderStatus | string>(order.status);
   const [isUpdatingStatus, startStatusTransition] = useTransition();
@@ -84,51 +94,10 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
     window.print();
   };
 
-  const statusOptions: { value: string; label: string }[] = [
-    { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'crating', label: 'Artisan Crating' },
-    { value: 'shipped', label: 'Shipped' },
-    { value: 'delivered', label: 'Delivered' },
-    { value: 'cancelled', label: 'Cancelled' },
-    { value: 'pending_verification', label: 'Pending Verification (Legacy)' },
-    { value: 'verified', label: 'Verified (Legacy)' },
-    { value: 'booked_with_courier', label: 'Booked Courier (Legacy)' },
-    { value: 'dispatched', label: 'Dispatched (Legacy)' },
-    { value: 'returned', label: 'Returned (Legacy)' },
-  ];
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-charcoal/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 print:p-0 print:bg-white print:static print:overflow-visible">
-      {/* Dynamic Print Isolation Styles */}
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #printable-invoice,
-          #printable-invoice * {
-            visibility: visible !important;
-          }
-          #printable-invoice {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 16px !important;
-            background: white !important;
-            color: black !important;
-          }
-          @page {
-            size: auto;
-            margin: 8mm;
-          }
-        }
-      `}</style>
-
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-charcoal/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 print:p-0 print:bg-white print:static print:overflow-visible no-print">
       {/* Main Modal Card */}
-      <div className="bg-sandstone w-full max-w-4xl rounded-2xl border border-border shadow-craft-lg overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-0 print:rounded-none">
+      <div className="bg-sandstone w-full max-w-4xl rounded-2xl border border-border shadow-craft-lg overflow-hidden flex flex-col max-h-[90vh] print:hidden no-print">
         {/* Modal Header */}
         <div className="px-6 py-5 bg-parchment border-b border-border flex flex-wrap items-center justify-between gap-4 no-print">
           <div className="flex items-center gap-3">
@@ -143,7 +112,7 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
                 <button
                   type="button"
                   onClick={handleCopyId}
-                  className="p-1 text-muted hover:text-charcoal transition-colors cursor-pointer rounded hover:bg-sandstone"
+                  className="p-1 text-muted hover:text-charcoal transition-colors cursor-pointer rounded hover:bg-sandstone no-print"
                   title="Copy Full Order ID"
                 >
                   {copiedId ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -173,18 +142,18 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 no-print">
             <button
               type="button"
               onClick={handlePrint}
-              className="px-4 py-2 bg-lapis hover:bg-lapis/90 text-parchment text-xs font-bold rounded-lg shadow-craft-sm transition-colors flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 bg-lapis hover:bg-lapis/90 text-parchment text-xs font-bold rounded-lg shadow-craft-sm transition-colors flex items-center gap-2 cursor-pointer no-print"
             >
               <Printer className="w-4 h-4" /> Print Invoice
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-muted hover:text-charcoal hover:bg-sandstone rounded-full transition-colors cursor-pointer"
+              className="p-2 text-muted hover:text-charcoal hover:bg-sandstone rounded-full transition-colors cursor-pointer no-print"
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />
@@ -193,7 +162,7 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
         </div>
 
         {/* Modal Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 print:p-0">
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 no-print">
           {/* Status Bar & Actions Row (no-print) */}
           <div className="bg-parchment p-4 rounded-xl border border-border flex flex-wrap items-center justify-between gap-4 no-print">
             <div className="flex items-center gap-3">
@@ -206,31 +175,31 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
                   onChange={(e) => handleStatusChange(e.target.value)}
                   className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-border bg-sandstone text-charcoal focus:outline-none focus:ring-2 focus:ring-lapis cursor-pointer disabled:opacity-50"
                 >
-                  {statusOptions.map((opt) => (
+                  {STATUS_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
-                  {/* Fallback for legacy or unmapped status strings */}
-                  {!statusOptions.some((o) => o.value === status) && (
+                  {/* Fallback for unmapped status strings */}
+                  {!STATUS_OPTIONS.some((o) => o.value === status) && (
                     <option value={status}>{status}</option>
                   )}
                 </select>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 no-print">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3.5 py-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold rounded-lg shadow-craft-sm transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold rounded-lg shadow-craft-sm transition-colors flex items-center gap-1.5 no-print"
               >
                 <WhatsAppIcon className="w-4 h-4 fill-current text-white" /> Chat on WhatsApp
               </a>
               <a
                 href={callUrl}
-                className="px-3.5 py-1.5 bg-sandstone hover:bg-chiseled border border-border text-charcoal text-xs font-bold rounded-lg shadow-craft-sm transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-1.5 bg-sandstone hover:bg-chiseled border border-border text-charcoal text-xs font-bold rounded-lg shadow-craft-sm transition-colors flex items-center gap-1.5 no-print"
               >
                 <Phone className="w-3.5 h-3.5 text-lapis" /> Call Customer
               </a>
@@ -328,7 +297,7 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
                 type="button"
                 onClick={handleSaveNotes}
                 disabled={isSavingNotes}
-                className="px-3 py-1 bg-lapis hover:bg-lapis/90 text-parchment text-xs font-bold rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-3 py-1 bg-lapis hover:bg-lapis/90 text-parchment text-xs font-bold rounded-md transition-colors flex items-center gap-1 cursor-pointer no-print"
               >
                 {isSavingNotes ? (
                   <RefreshCw className="w-3 h-3 animate-spin" />
@@ -345,97 +314,97 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
               className="w-full h-24 p-3 bg-sandstone border border-border rounded-lg text-xs font-sans text-charcoal focus:outline-none focus:ring-2 focus:ring-lapis resize-none"
             />
           </div>
+        </div>
+      </div>
 
-          {/* Dedicated Printable Archival Packing Slip / Invoice Container */}
-          <div id="printable-invoice" className="printable-slip hidden print:block border-2 border-black p-6 bg-white text-black font-sans">
-            {/* Packing Slip Header */}
-            <div className="border-b-2 border-black pb-4 flex justify-between items-start">
-              <div>
-                <h1 className="text-2xl font-bold font-serif uppercase tracking-tight">Ghazali Handicrafts</h1>
-                <p className="text-xs font-medium">Archival Crafts & Fragile Export Packaging</p>
-                <p className="text-xs text-gray-700 mt-1">
-                  27 New Anarkali Road, Anarkali Bazaar, Lahore | Helpline: +92 321 9981625
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="inline-block border-2 border-black px-3 py-1 text-sm font-mono font-bold uppercase">
-                  ARCHIVAL PACKING SLIP
-                </div>
-                <p className="text-xs font-mono font-bold mt-1">Order Ref: #{order.id.slice(0, 8)}</p>
-                <p className="text-[11px] text-gray-600">Date: {new Date(order.created_at).toLocaleDateString()}</p>
-              </div>
+      {/* Dedicated Printable Archival Packing Slip / Invoice Container */}
+      <div id="printable-invoice" className="printable-slip border-2 border-black p-6 bg-white text-black font-sans">
+        {/* Packing Slip Header */}
+        <div className="border-b-2 border-black pb-4 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold font-serif uppercase tracking-tight">Ghazali Handicrafts</h1>
+            <p className="text-xs font-medium">Archival Crafts & Fragile Export Packaging</p>
+            <p className="text-xs text-gray-700 mt-1">
+              27 New Anarkali Road, Anarkali Bazaar, Lahore | Helpline: +92 321 9981625
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="inline-block border-2 border-black px-3 py-1 text-sm font-mono font-bold uppercase">
+              ARCHIVAL PACKING SLIP
             </div>
+            <p className="text-xs font-mono font-bold mt-1">Order Ref: #{order.id.slice(0, 8)}</p>
+            <p className="text-[11px] text-gray-600">Date: {new Date(order.created_at).toLocaleDateString()}</p>
+          </div>
+        </div>
 
-            {/* Courier & Shipping Label Section */}
-            <div className="my-6 border-2 border-black p-4 bg-gray-50">
-              <div className="text-xs font-bold uppercase tracking-widest text-gray-700 border-b border-black pb-1 mb-3">
-                COURIER DELIVERY LABEL (TRAX / TCS / CALL COURIER)
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-600">RECIPIENT NAME:</p>
-                  <p className="text-lg font-bold uppercase">{order.customer_name}</p>
-                  <p className="text-sm font-mono font-bold mt-1">PHONE: {order.customer_phone}</p>
-                  <p className="text-xs mt-2 text-gray-700"><strong>STREET ADDRESS:</strong> {order.address}</p>
-                </div>
-                <div className="border-l-2 border-black pl-4">
-                  <p className="text-xs text-gray-600 font-bold">DESTINATION CITY:</p>
-                  <p className="text-3xl font-black uppercase text-black font-mono leading-none my-1">
-                    {order.city}
-                  </p>
-                  {order.landmark && (
-                    <div className="mt-3 p-2 border border-black bg-white">
-                      <p className="text-[10px] font-bold text-gray-500 uppercase">COURIER LANDMARK MARKER:</p>
-                      <p className="text-xs font-bold text-black uppercase">{order.landmark}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+        {/* Courier & Shipping Label Section */}
+        <div className="my-6 border-2 border-black p-4 bg-gray-50">
+          <div className="text-xs font-bold uppercase tracking-widest text-gray-700 border-b border-black pb-1 mb-3">
+            COURIER DELIVERY LABEL (TRAX / TCS / CALL COURIER)
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-600">RECIPIENT NAME:</p>
+              <p className="text-lg font-bold uppercase">{order.customer_name}</p>
+              <p className="text-sm font-mono font-bold mt-1">PHONE: {order.customer_phone}</p>
+              <p className="text-xs mt-2 text-gray-700"><strong>STREET ADDRESS:</strong> {order.address}</p>
             </div>
-
-            {/* Itemized Slip Table */}
-            <table className="w-full text-left text-xs border-collapse border border-black my-4">
-              <thead>
-                <tr className="bg-gray-200 border-b border-black font-bold uppercase">
-                  <th className="border border-black p-2">Item Description</th>
-                  <th className="border border-black p-2 text-center">Qty</th>
-                  <th className="border border-black p-2 text-right">Unit Price</th>
-                  <th className="border border-black p-2 text-right">Line Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.order_items?.map((item) => (
-                  <tr key={item.id} className="border-b border-black">
-                    <td className="border border-black p-2 font-medium">{item.product?.name}</td>
-                    <td className="border border-black p-2 text-center font-mono font-bold">{item.quantity}</td>
-                    <td className="border border-black p-2 text-right font-mono">Rs. {Number(item.unit_price).toLocaleString()}</td>
-                    <td className="border border-black p-2 text-right font-mono font-bold">Rs. {(Number(item.unit_price) * item.quantity).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Financial Totals */}
-            <div className="flex justify-between items-end pt-2 border-t-2 border-black">
-              <div className="text-xs space-y-1">
-                <p><strong>Payment Method:</strong> {order.payment_method || 'Cash on Delivery'}</p>
-                <p><strong>Inspection Rule:</strong> Fragile Wooden Crated Parcel — Open Box Allowed</p>
-                {notes && <p className="text-[11px] text-gray-700 italic"><strong>Packaging Note:</strong> {notes}</p>}
-              </div>
-              <div className="text-right text-xs font-mono space-y-1">
-                <p>Subtotal: Rs. {Number(order.subtotal).toLocaleString()} PKR</p>
-                <p>Shipping Fee: {Number(order.shipping_fee) === 0 ? 'FREE' : `Rs. ${Number(order.shipping_fee).toLocaleString()} PKR`}</p>
-                <p className="text-base font-bold font-sans border-t border-black pt-1">
-                  TOTAL AMOUNT (COD): PKR {Number(order.total_amount).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {/* Footer stamp */}
-            <div className="mt-8 pt-4 border-t border-dashed border-gray-400 text-center text-[10px] text-gray-500 uppercase tracking-widest">
-              Ghazali Handicrafts • 27 New Anarkali Road, Lahore • Helpline: +92 321 9981625
+            <div className="border-l-2 border-black pl-4">
+              <p className="text-xs text-gray-600 font-bold">DESTINATION CITY:</p>
+              <p className="text-3xl font-black uppercase text-black font-mono leading-none my-1">
+                {order.city}
+              </p>
+              {order.landmark && (
+                <div className="mt-3 p-2 border border-black bg-white">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase">COURIER LANDMARK MARKER:</p>
+                  <p className="text-xs font-bold text-black uppercase">{order.landmark}</p>
+                </div>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* Itemized Slip Table */}
+        <table className="w-full text-left text-xs border-collapse border border-black my-4">
+          <thead>
+            <tr className="bg-gray-200 border-b border-black font-bold uppercase">
+              <th className="border border-black p-2">Item Description</th>
+              <th className="border border-black p-2 text-center">Qty</th>
+              <th className="border border-black p-2 text-right">Unit Price</th>
+              <th className="border border-black p-2 text-right">Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {order.order_items?.map((item) => (
+              <tr key={item.id} className="border-b border-black">
+                <td className="border border-black p-2 font-medium">{item.product?.name}</td>
+                <td className="border border-black p-2 text-center font-mono font-bold">{item.quantity}</td>
+                <td className="border border-black p-2 text-right font-mono">Rs. {Number(item.unit_price).toLocaleString()}</td>
+                <td className="border border-black p-2 text-right font-mono font-bold">Rs. {(Number(item.unit_price) * item.quantity).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Financial Totals */}
+        <div className="flex justify-between items-end pt-2 border-t-2 border-black">
+          <div className="text-xs space-y-1">
+            <p><strong>Payment Method:</strong> {order.payment_method || 'Cash on Delivery'}</p>
+            <p><strong>Inspection Rule:</strong> Fragile Wooden Crated Parcel — Open Box Allowed</p>
+            {notes && <p className="text-[11px] text-gray-700 italic"><strong>Packaging Note:</strong> {notes}</p>}
+          </div>
+          <div className="text-right text-xs font-mono space-y-1">
+            <p>Subtotal: Rs. {Number(order.subtotal).toLocaleString()} PKR</p>
+            <p>Shipping Fee: {Number(order.shipping_fee) === 0 ? 'FREE' : `Rs. ${Number(order.shipping_fee).toLocaleString()} PKR`}</p>
+            <p className="text-base font-bold font-sans border-t border-black pt-1">
+              TOTAL AMOUNT (COD): PKR {Number(order.total_amount).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Footer stamp */}
+        <div className="mt-8 pt-4 border-t border-dashed border-gray-400 text-center text-[10px] text-gray-500 uppercase tracking-widest">
+          Ghazali Handicrafts • 27 New Anarkali Road, Lahore • Helpline: +92 321 9981625
         </div>
       </div>
     </div>

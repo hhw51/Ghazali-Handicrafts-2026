@@ -62,44 +62,44 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           All Orders
         </Link>
         <Link
-          href="/admin/orders?status=pending"
+          href="/admin/orders?status=pending_verification"
           className={`px-3.5 py-1.5 rounded-full transition-colors ${
-            resolvedParams.status === 'pending' || resolvedParams.status === 'pending_verification'
+            resolvedParams.status === 'pending_verification'
               ? 'bg-amber-800 text-amber-100 font-bold shadow-craft-sm'
               : 'bg-sandstone text-charcoal hover:bg-chiseled border border-border'
           }`}
         >
-          Pending
+          Pending Verification
         </Link>
         <Link
-          href="/admin/orders?status=confirmed"
+          href="/admin/orders?status=verified"
           className={`px-3.5 py-1.5 rounded-full transition-colors ${
-            resolvedParams.status === 'confirmed' || resolvedParams.status === 'verified'
+            resolvedParams.status === 'verified'
               ? 'bg-lapis text-parchment font-bold shadow-craft-sm'
               : 'bg-sandstone text-charcoal hover:bg-chiseled border border-border'
           }`}
         >
-          Confirmed
+          Verified
         </Link>
         <Link
-          href="/admin/orders?status=crating"
+          href="/admin/orders?status=booked_with_courier"
           className={`px-3.5 py-1.5 rounded-full transition-colors ${
-            resolvedParams.status === 'crating'
-              ? 'bg-brass/90 text-charcoal font-bold shadow-craft-sm'
+            resolvedParams.status === 'booked_with_courier'
+              ? 'bg-indigo-800 text-indigo-100 font-bold shadow-craft-sm'
               : 'bg-sandstone text-charcoal hover:bg-chiseled border border-border'
           }`}
         >
-          Artisan Crating
+          Booked Courier
         </Link>
         <Link
-          href="/admin/orders?status=shipped"
+          href="/admin/orders?status=dispatched"
           className={`px-3.5 py-1.5 rounded-full transition-colors ${
-            resolvedParams.status === 'shipped' || resolvedParams.status === 'dispatched' || resolvedParams.status === 'booked_with_courier'
+            resolvedParams.status === 'dispatched'
               ? 'bg-sky-800 text-sky-100 font-bold shadow-craft-sm'
               : 'bg-sandstone text-charcoal hover:bg-chiseled border border-border'
           }`}
         >
-          Shipped / Dispatched
+          Dispatched
         </Link>
         <Link
           href="/admin/orders?status=delivered"
@@ -120,6 +120,16 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           }`}
         >
           Cancelled
+        </Link>
+        <Link
+          href="/admin/orders?status=returned"
+          className={`px-3.5 py-1.5 rounded-full transition-colors ${
+            resolvedParams.status === 'returned'
+              ? 'bg-terracotta text-parchment font-bold shadow-craft-sm'
+              : 'bg-sandstone text-charcoal hover:bg-chiseled border border-border'
+          }`}
+        >
+          Returned
         </Link>
       </div>
 

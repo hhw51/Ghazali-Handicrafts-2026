@@ -100,32 +100,47 @@
 
 /* Dedicated Print Media Styles for Archival Packing Slip / Invoice */
 @media print {
-  /* 1. Hide everything on the page by default */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* 2. Make ONLY the printable invoice and its children visible */
-  #printable-invoice,
-  #printable-invoice * {
-    visibility: visible !important;
-  }
-
-  /* 3. Anchor the printable invoice to the very top-left of the physical page */
-  #printable-invoice {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
+  /* 1. Hide the entire application body flow */
+  html, body {
     margin: 0 !important;
-    padding: 16px !important;
-    background: white !important;
-    color: black !important;
+    padding: 0 !important;
+    background: #fff !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  /* 4. Remove browser headers, footers, margins and page breaks */
+  /* Hide main navigation, sidebars, tables, backdrop overlays, and buttons */
+  header,
+  nav,
+  aside,
+  table,
+  button,
+  .no-print,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* 2. Style the dedicated print container to take full page from the top */
+  #printable-invoice {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-sizing: border-box !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 3. Force single page print without headers/footers */
   @page {
-    size: auto;
-    margin: 8mm;
+    size: A4 portrait;
+    margin: 0;
   }
 }

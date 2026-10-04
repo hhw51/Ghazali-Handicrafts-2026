@@ -1,13 +1,9 @@
 import { Product } from './product';
 
 export type OrderStatus =
-  | 'pending'
   | 'pending_verification'
-  | 'confirmed'
   | 'verified'
-  | 'crating'
   | 'booked_with_courier'
-  | 'shipped'
   | 'dispatched'
   | 'delivered'
   | 'cancelled'

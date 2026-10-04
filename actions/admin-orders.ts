@@ -6,30 +6,12 @@ import { revalidatePath } from 'next/cache';
 
 export async function updateOrderStatus(
   orderId: string,
-  newStatus: OrderStatus
+  newStatus: OrderStatus | string
 ): Promise<{
   success: boolean;
   error?: string;
 }> {
   try {
-    const validStatuses: OrderStatus[] = [
-      'pending',
-      'pending_verification',
-      'confirmed',
-      'verified',
-      'crating',
-      'booked_with_courier',
-      'shipped',
-      'dispatched',
-      'delivered',
-      'cancelled',
-      'returned',
-    ];
-
-    if (!validStatuses.includes(newStatus)) {
-      return { success: false, error: 'Invalid order status transition state.' };
-    }
-
     const supabase = createAdminClient();
 
     const { error } = await supabase
@@ -38,7 +20,7 @@ export async function updateOrderStatus(
       .eq('id', orderId);
 
     if (error) {
-      console.error('Error updating order status:', error);
+      console.error('Update status error:', error);
       return { success: false, error: error.message };
     }
 
@@ -48,7 +30,7 @@ export async function updateOrderStatus(
     return { success: true };
   } catch (err) {
     console.error('updateOrderStatus Exception:', err);
-    return { success: false, error: 'Failed to update order status state.' };
+    return { success: false, error: 'Failed to update order status.' };
   }
 }
 
