@@ -97,3 +97,35 @@
 .image-zoom-container:hover img {
   transform: scale(1.05);
 }
+
+/* Dedicated Print Media Styles for Archival Packing Slip / Invoice */
+@media print {
+  /* 1. Hide everything on the page by default */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 2. Make ONLY the printable invoice and its children visible */
+  #printable-invoice,
+  #printable-invoice * {
+    visibility: visible !important;
+  }
+
+  /* 3. Anchor the printable invoice to the very top-left of the physical page */
+  #printable-invoice {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* 4. Remove browser headers, footers, margins and page breaks */
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
+}

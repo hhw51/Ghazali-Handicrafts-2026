@@ -1,20 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { OrderStatus } from '@/types/order';
 import { updateOrderStatus } from '@/actions/admin-orders';
 import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface OrderStatusSelectProps {
   orderId: string;
-  currentStatus: OrderStatus;
+  currentStatus: OrderStatus | string;
 }
 
 export function OrderStatusSelect({ orderId, currentStatus }: OrderStatusSelectProps) {
-  const [status, setStatus] = useState<OrderStatus>(currentStatus);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<string>(currentStatus);
+  const [isPending, startTransition] = useTransition();
 
-  const statusColors: Record<OrderStatus, string> = {
+  const statusColors: Record<string, string> = {
     pending: 'bg-amber-100 text-amber-900 border-amber-300',
     pending_verification: 'bg-amber-100 text-amber-900 border-amber-300',
     confirmed: 'bg-lapis/10 text-lapis border-lapis/30',
@@ -28,26 +29,29 @@ export function OrderStatusSelect({ orderId, currentStatus }: OrderStatusSelectP
     returned: 'bg-terracotta/10 text-terracotta border-terracotta/30',
   };
 
-  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStat = e.target.value as OrderStatus;
-    setLoading(true);
+  const handleStatusChange = (newStatus: string) => {
+    const prevStatus = status;
+    setStatus(newStatus); // 0ms Instant UI update
 
-    const res = await updateOrderStatus(orderId, newStat);
-    setLoading(false);
-
-    if (res.success) {
-      setStatus(newStat);
-    }
+    startTransition(async () => {
+      const res = await updateOrderStatus(orderId, newStatus as OrderStatus);
+      if (!res?.success) {
+        setStatus(prevStatus); // Revert on error
+        toast.error('Failed to update status');
+      } else {
+        toast.success(`Order status updated to ${newStatus}`);
+      }
+    });
   };
 
   return (
-    <div className="relative inline-flex items-center gap-1.5">
-      {loading && <RefreshCw className="w-3 h-3 animate-spin text-muted" />}
+    <div className="relative inline-flex items-center gap-1.5 font-sans" onClick={(e) => e.stopPropagation()}>
+      {isPending && <RefreshCw className="w-3 h-3 animate-spin text-lapis shrink-0" />}
       <select
         value={status}
-        onChange={handleChange}
-        disabled={loading}
-        className={`px-3 py-1 text-xs font-semibold rounded-md border focus:outline-none cursor-pointer ${statusColors[status] || 'bg-sandstone text-charcoal border-border'}`}
+        disabled={isPending}
+        onChange={(e) => handleStatusChange(e.target.value)}
+        className={`px-3 py-1.5 text-xs font-semibold rounded-lg border focus:outline-none cursor-pointer disabled:opacity-50 transition-colors ${statusColors[status] || 'bg-sandstone text-charcoal border-border'}`}
       >
         <option value="pending">Pending</option>
         <option value="confirmed">Confirmed</option>
@@ -55,6 +59,7 @@ export function OrderStatusSelect({ orderId, currentStatus }: OrderStatusSelectP
         <option value="shipped">Shipped</option>
         <option value="delivered">Delivered</option>
         <option value="cancelled">Cancelled</option>
+        {/* Legacy status fallbacks */}
         <option value="pending_verification">Pending Verification (Legacy)</option>
         <option value="verified">Verified (Legacy)</option>
         <option value="booked_with_courier">Booked Courier (Legacy)</option>

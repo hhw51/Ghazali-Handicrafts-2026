@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { OrderWithItems, OrderStatus } from '@/types/order';
 import { updateOrderStatus, updateOrderNotes } from '@/actions/admin-orders';
 import {
@@ -30,8 +30,8 @@ interface OrderDetailsModalProps {
 }
 
 export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetailsModalProps) {
-  const [status, setStatus] = useState<OrderStatus>(order.status);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [status, setStatus] = useState<OrderStatus | string>(order.status);
+  const [isUpdatingStatus, startStatusTransition] = useTransition();
   const [notes, setNotes] = useState(order.notes || '');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -50,19 +50,21 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
     setTimeout(() => setCopiedId(false), 2000);
   };
 
-  const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value as OrderStatus;
-    setIsUpdatingStatus(true);
-    const res = await updateOrderStatus(order.id, newStatus);
-    setIsUpdatingStatus(false);
+  const handleStatusChange = (newStatusStr: string) => {
+    const newStatus = newStatusStr as OrderStatus;
+    const prevStatus = status;
+    setStatus(newStatus); // 0ms Instant UI update
 
-    if (res.success) {
-      setStatus(newStatus);
-      toast.success(`Order status updated to ${newStatus}`);
-      if (onOrderUpdated) onOrderUpdated();
-    } else {
-      toast.error(res.error || 'Failed to update order status');
-    }
+    startStatusTransition(async () => {
+      const res = await updateOrderStatus(order.id, newStatus);
+      if (!res?.success) {
+        setStatus(prevStatus); // Revert on error
+        toast.error(res?.error || 'Failed to update order status');
+      } else {
+        toast.success(`Order status updated to ${newStatus}`);
+        if (onOrderUpdated) onOrderUpdated();
+      }
+    });
   };
 
   const handleSaveNotes = async () => {
@@ -82,47 +84,45 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
     window.print();
   };
 
-  const statusOptions: { value: OrderStatus; label: string }[] = [
+  const statusOptions: { value: string; label: string }[] = [
     { value: 'pending', label: 'Pending' },
     { value: 'confirmed', label: 'Confirmed' },
     { value: 'crating', label: 'Artisan Crating' },
-    { value: 'shipped', label: 'Shipped (Dispatched)' },
+    { value: 'shipped', label: 'Shipped' },
     { value: 'delivered', label: 'Delivered' },
     { value: 'cancelled', label: 'Cancelled' },
+    { value: 'pending_verification', label: 'Pending Verification (Legacy)' },
+    { value: 'verified', label: 'Verified (Legacy)' },
+    { value: 'booked_with_courier', label: 'Booked Courier (Legacy)' },
+    { value: 'dispatched', label: 'Dispatched (Legacy)' },
+    { value: 'returned', label: 'Returned (Legacy)' },
   ];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-charcoal/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 print:p-0 print:bg-white print:static print:overflow-visible">
-      {/* Print Styles Overlay */}
+      {/* Dynamic Print Isolation Styles */}
       <style jsx global>{`
         @media print {
-          /* Hide non-printable elements */
-          body > *:not(.print\\:block) {
-            display: none !important;
+          body * {
+            visibility: hidden !important;
           }
-          header, footer, nav, sidebar, .no-print {
-            display: none !important;
+          #printable-invoice,
+          #printable-invoice * {
+            visibility: visible !important;
           }
-          .fixed {
-            position: static !important;
-          }
-          .overflow-y-auto {
-            overflow: visible !important;
-          }
-          body {
-            background: #ffffff !important;
-            color: #000000 !important;
-          }
-          .printable-slip {
-            display: block !important;
+          #printable-invoice {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
-            max-width: 100% !important;
-            box-shadow: none !important;
-            border: 2px solid #000 !important;
-            padding: 24px !important;
             margin: 0 !important;
-            background: #ffffff !important;
-            color: #000000 !important;
+            padding: 16px !important;
+            background: white !important;
+            color: black !important;
+          }
+          @page {
+            size: auto;
+            margin: 8mm;
           }
         }
       `}</style>
@@ -202,16 +202,16 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
                 {isUpdatingStatus && <RefreshCw className="w-3.5 h-3.5 animate-spin text-lapis" />}
                 <select
                   value={status}
-                  onChange={handleStatusChange}
                   disabled={isUpdatingStatus}
-                  className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-border bg-sandstone text-charcoal focus:outline-none focus:ring-2 focus:ring-lapis cursor-pointer"
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-border bg-sandstone text-charcoal focus:outline-none focus:ring-2 focus:ring-lapis cursor-pointer disabled:opacity-50"
                 >
                   {statusOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
-                      {opt.label} ({opt.value})
+                      {opt.label}
                     </option>
                   ))}
-                  {/* Fallback for legacy status strings */}
+                  {/* Fallback for legacy or unmapped status strings */}
                   {!statusOptions.some((o) => o.value === status) && (
                     <option value={status}>{status}</option>
                   )}
@@ -237,7 +237,7 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
             {/* Customer & Delivery Block */}
             <div className="bg-parchment p-5 rounded-xl border border-border space-y-3">
               <h3 className="font-serif text-sm font-bold text-charcoal border-b border-border pb-2 flex items-center gap-2">
@@ -281,8 +281,8 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
             </div>
           </div>
 
-          {/* Itemized Products Table */}
-          <div className="bg-parchment rounded-xl border border-border overflow-hidden">
+          {/* Itemized Products Table (no-print) */}
+          <div className="bg-parchment rounded-xl border border-border overflow-hidden no-print">
             <div className="px-5 py-3 border-b border-border font-serif text-sm font-bold text-charcoal">
               Ordered Craft Products ({order.order_items?.length || 0})
             </div>
@@ -346,8 +346,8 @@ export function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetai
             />
           </div>
 
-          {/* Dedicated Printable Archival Packing Slip (Rendered / Visible for print) */}
-          <div className="printable-slip hidden print:block border-2 border-black p-6 bg-white text-black font-sans">
+          {/* Dedicated Printable Archival Packing Slip / Invoice Container */}
+          <div id="printable-invoice" className="printable-slip hidden print:block border-2 border-black p-6 bg-white text-black font-sans">
             {/* Packing Slip Header */}
             <div className="border-b-2 border-black pb-4 flex justify-between items-start">
               <div>
