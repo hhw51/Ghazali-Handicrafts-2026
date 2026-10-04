@@ -19,7 +19,7 @@ export function AnnouncementBar({ config }: { config?: AnnouncementBarConfig }) 
 
   const announcementText =
     config?.text ||
-    'Nationwide Cash on Delivery | Double-Crated Fragile Protection | Free Shipping Above Rs. 10,000';
+    'Nationwide Cash on Delivery | Double-Crated Fragile Protection | Free Shipping Above Rs.5,000';
   const tickerText = config?.ticker || 'Archival Craftsmanship Since 1974';
 
   return (

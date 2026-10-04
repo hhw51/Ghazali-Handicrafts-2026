@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product } from '@/types/product';
 import { CartItem, UnitSelection } from '@/types/order';
 
-const FREE_SHIPPING_THRESHOLD = 10000; // 10,000 PKR
+const FREE_SHIPPING_THRESHOLD = 5000; // 10,000 PKR
 const STANDARD_SHIPPING_FEE = 350;     // 350 PKR
 
 interface CartState {

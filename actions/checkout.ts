@@ -89,8 +89,8 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
       });
     }
 
-    // 4. Calculate dynamic shipping fee (Free above 10,000 PKR, else 350 PKR)
-    const shippingFee = subtotal >= 10000 ? 0 : 350;
+    // 4. Calculate dynamic shipping fee (Free above 5000 PKR, else 350 PKR)
+    const shippingFee = subtotal >= 5000 ? 0 : 350;
     const totalAmount = subtotal + shippingFee;
 
     const customer = validationResult.data;

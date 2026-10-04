@@ -25,7 +25,7 @@ export function FestiveBanner({ overrideThemeId }: FestiveBannerProps) {
           </div>
           <div className="mx-auto md:mx-0 flex items-center gap-1.5 text-brass font-medium">
             <Sparkles className="w-3.5 h-3.5 text-brass animate-pulse" />
-            <span>Free Shipping on Orders Above Rs. 10,000 PKR</span>
+            <span>Free Shipping on Orders Above Rs. 5,000 PKR</span>
           </div>
         </div>
       </div>

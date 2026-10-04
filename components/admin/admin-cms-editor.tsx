@@ -491,7 +491,7 @@ export function AdminCmsEditor({ initialSections }: AdminCmsEditorProps) {
                         type="text"
                         value={
                           settings.text ||
-                          'Nationwide Cash on Delivery | Double-Crated Fragile Protection | Free Shipping Above Rs. 10,000'
+                          'Nationwide Cash on Delivery | Double-Crated Fragile Protection | Free Shipping Above Rs. 5,000'
                         }
                         onChange={(e) => handleUpdateSetting(sk.id, 'text', e.target.value)}
                         className="w-full px-3 py-2 bg-sandstone border border-border rounded-lg text-charcoal font-medium"
