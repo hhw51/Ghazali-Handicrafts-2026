@@ -128,19 +128,7 @@ export default async function OrderSuccessPage({ params }: PageProps) {
       </div>
 
       {/* Live Order Status Progress Bar */}
-      <div className="bg-sandstone rounded-xl border border-border p-6 space-y-4 shadow-craft-sm">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <div>
-            <h3 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
-              <PackageCheck className="w-5 h-5 text-terracotta" /> Live Parcel Tracking Status
-            </h3>
-            <p className="text-xs text-muted mt-0.5">Order #{order.id.slice(0, 8)} • Real-time artisan crating pipeline</p>
-          </div>
-          <span className="px-3 py-1 bg-lapis/10 text-lapis font-bold text-xs rounded-full uppercase tracking-wider font-mono">
-            Status: {order.status}
-          </span>
-        </div>
-
+      <div className="bg-sandstone rounded-xl border border-border p-6 shadow-craft-sm">
         <OrderTrackingStepper status={order.status} orderId={order.id} />
       </div>
 

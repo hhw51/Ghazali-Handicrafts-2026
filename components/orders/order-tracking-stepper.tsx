@@ -1,26 +1,35 @@
 'use client';
 
+import React from 'react';
+import { Clock, Box, Truck, CheckCircle2 } from 'lucide-react';
+
 interface TrackingStep {
   title: string;
   subtitle: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: React.ComponentType<any>;
 }
 
 const STEPS: TrackingStep[] = [
   {
     title: 'Pending Confirmation',
     subtitle: 'Verification & Order Booking',
+    icon: Clock,
   },
   {
     title: 'Artisan Packaging & Crating',
     subtitle: 'Wooden Box & Bubble Buffering',
+    icon: Box,
   },
   {
     title: 'Dispatched (Trax/TCS)',
     subtitle: 'Courier Tracking Assigned',
+    icon: Truck,
   },
   {
     title: 'Delivered',
     subtitle: 'Doorstep Inspection & COD',
+    icon: CheckCircle2,
   },
 ];
 
@@ -48,9 +57,11 @@ export function OrderTrackingStatus({ status, orderId = '' }: { status: string; 
           <h2 className="font-serif text-lg font-semibold text-[#1A1410] tracking-tight">
             Live Parcel Tracking
           </h2>
-          <p className="text-xs text-[#8C8275] mt-0.5 font-mono">
-            Order #{orderId.slice(0, 8)} • Real-time artisan crating pipeline
-          </p>
+          {orderId && (
+            <p className="text-xs text-[#8C8275] mt-0.5 font-mono">
+              Order #{orderId.slice(0, 8)} • Real-time artisan crating pipeline
+            </p>
+          )}
         </div>
         <div className="bg-[#E7DFD5]/60 text-[#1A1410] px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase font-mono">
           STATUS: {status.replace(/_/g, ' ')}
@@ -66,6 +77,7 @@ export function OrderTrackingStatus({ status, orderId = '' }: { status: string; 
         <div className="pt-8 pb-4 space-y-8 relative">
           {STEPS.map((step, index) => {
             const isCompleted = currentStepIndex >= index;
+            const StepIcon = step.icon;
 
             return (
               <div key={index} className="flex items-start gap-4 relative">
@@ -78,13 +90,7 @@ export function OrderTrackingStatus({ status, orderId = '' }: { status: string; 
                         : 'bg-[#FAF8F5] border-2 border-[#D5CCC0] text-[#A89F91]'
                     }`}
                   >
-                    {isCompleted ? (
-                      <svg className="w-5 h-5 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#D5CCC0]" />
-                    )}
+                    <StepIcon className="w-5 h-5" />
                   </div>
 
                   {/* Vertical Track Line */}
